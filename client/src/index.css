@@ -1,0 +1,77 @@
+@import "tailwindcss";
+
+@theme {
+  /* Colors */
+  --color-pagoda-gold: #C5A059;
+  --color-pagoda-goldLight: #E5D4B3;
+  --color-pagoda-stone-900: #44403C;
+  --color-pagoda-stone-800: #57534E;
+  --color-pagoda-stone-700: #57534E;
+  --color-pagoda-stone-600: #78716C;
+  --color-pagoda-stone-500: #78716C;
+  --color-pagoda-stone-400: #A8A29E;
+  --color-pagoda-stone-300: #D6D3D1;
+  --color-pagoda-stone-200: #E7E5E4;
+  --color-pagoda-stone-100: #F5F5F4;
+  --color-pagoda-stone-50: #FAFAF9;
+  --color-pagoda-sand: #F5F0E6;
+  --color-pagoda-error: #9A3412;
+  --color-pagoda-success: #4D7C0F;
+
+  /* Fonts */
+  --font-serif: 'Merriweather', serif;
+  --font-sans: 'Inter', system-ui, sans-serif;
+
+  /* Backgrounds */
+  --image-subtle-pattern: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23C5A059' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* Global Styles */
+@layer base {
+  body {
+    @apply bg-pagoda-stone-50 text-pagoda-stone-900 font-sans antialiased;
+    background-image: var(--image-subtle-pattern);
+    background-attachment: fixed;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-serif text-pagoda-stone-900;
+  }
+}
+
+/* Components */
+@layer components {
+
+  /* Button Styles */
+  .btn-primary {
+    @apply px-6 py-2 bg-pagoda-gold text-white rounded-md hover:bg-[#B08D4C] transition-colors duration-300 font-medium tracking-wide shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-secondary {
+    @apply px-6 py-2 bg-pagoda-stone-100 text-pagoda-stone-700 rounded-md hover:bg-pagoda-stone-200 transition-colors duration-300 font-medium tracking-wide border border-pagoda-stone-300 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-outline {
+    @apply px-6 py-2 border-2 border-pagoda-gold text-pagoda-gold rounded-md hover:bg-pagoda-gold hover:text-white transition-all duration-300 font-medium tracking-wide disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  /* Input Styles */
+  .input-field {
+    @apply w-full px-4 py-2 bg-white border border-pagoda-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pagoda-gold/50 focus:border-pagoda-gold transition-all duration-300 placeholder:text-pagoda-stone-500 text-pagoda-stone-900;
+  }
+
+  /* Card Styles */
+  .card-base {
+    @apply bg-white border border-pagoda-stone-100 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300;
+  }
+
+  /* Glass/Utility Styles */
+  .glass-card {
+    @apply bg-white border border-pagoda-stone-100 shadow-sm rounded-lg;
+  }
+}

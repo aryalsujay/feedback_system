@@ -1,0 +1,182 @@
+{
+  "global_pagoda": {
+    "name": "Global Vipassana Pagoda",
+    "questions": [
+      {
+        "id": "peaceful",
+        "text": "Did you find the environment peaceful?",
+        "type": "smiley",
+        "labels": {
+          "1": "Very Noisy",
+          "2": "Distracting",
+          "3": "Okay",
+          "4": "Peaceful",
+          "5": "Very Peaceful"
+        }
+      },
+      {
+        "id": "vipassana_understanding",
+        "text": "Has this visit helped you to gain a good understanding of Vipassana?",
+        "type": "number_rating",
+        "labels": {
+          "1": "Not satisfied",
+          "2": "Somewhat satisfied",
+          "3": "Neutral",
+          "4": "Satisfied",
+          "5": "Very satisfied"
+        }
+      },
+      {
+        "id": "course_interest",
+        "text": "Would you like to participate in a 10 Day Vipassana Course?",
+        "type": "option_select",
+        "options": [
+          "No!",
+          "Maybe not",
+          "Perhaps later",
+          "Yes! But not now!",
+          "Yes! definitely"
+        ]
+      },
+      {
+        "id": "cleanliness",
+        "text": "How would you rate the cleanliness of the premises?",
+        "type": "number_rating",
+        "labels": {
+          "1": "Very dirty",
+          "2": "Dirty",
+          "3": "Average",
+          "4": "Clean",
+          "5": "Very clean"
+        }
+      },
+      {
+        "id": "staff_behavior",
+        "text": "How was the behavior of the staff?",
+        "type": "number_rating",
+        "labels": {
+          "1": "Were rude",
+          "2": "Not helpful",
+          "3": "Average",
+          "4": "Helpful",
+          "5": "Very helpful"
+        }
+      },
+      {
+        "id": "overall_experience",
+        "text": "Overall experience at the Pagoda",
+        "type": "rating_5"
+      },
+      {
+        "id": "suggestion",
+        "text": "Suggestions for improvement/Feedback, if any:",
+        "type": "text"
+      }
+    ]
+  },
+  "food_court": {
+    "name": "Food Court",
+    "questions": [
+      {
+        "id": "food_quality",
+        "text": "How was the quality of the food?",
+        "type": "smiley"
+      },
+      {
+        "id": "hygiene",
+        "text": "How would you rate the hygiene of the food court?",
+        "type": "smiley"
+      },
+      {
+        "id": "service_speed",
+        "text": "How was the speed of service?",
+        "type": "smiley"
+      },
+      {
+        "id": "value_for_money",
+        "text": "Value for money?",
+        "type": "rating_5"
+      },
+      {
+        "id": "suggestion",
+        "text": "Suggestions for menu or service?",
+        "type": "text"
+      }
+    ]
+  },
+  "souvenir_shop": {
+    "name": "Souvenir Shop",
+    "questions": [
+      {
+        "id": "variety",
+        "text": "Variety of items available?",
+        "type": "smiley"
+      },
+      {
+        "id": "pricing",
+        "text": "Are the prices reasonable?",
+        "type": "smiley"
+      },
+      {
+        "id": "staff_helpfulness",
+        "text": "Was the staff helpful?",
+        "type": "rating_5"
+      },
+      {
+        "id": "suggestion",
+        "text": "What other items would you like to see?",
+        "type": "text"
+      }
+    ]
+  },
+  "dhamma_alaya": {
+    "name": "Dhammalaya",
+    "questions": [
+      {
+        "id": "checkin_process",
+        "text": "How was the check-in process?",
+        "type": "smiley"
+      },
+      {
+        "id": "room_cleanliness",
+        "text": "Cleanliness of the room/dorm?",
+        "type": "smiley"
+      },
+      {
+        "id": "facilities",
+        "text": "Adequacy of facilities provided?",
+        "type": "rating_5"
+      },
+      {
+        "id": "suggestion",
+        "text": "Any suggestions?",
+        "type": "text"
+      }
+    ]
+  },
+  "dpvc": {
+    "name": "Dhamma Pattana Vipassana Centre",
+    "questions": [
+      {
+        "id": "course_management",
+        "text": "How was the course management?",
+        "type": "smiley"
+      },
+      {
+        "id": "accommodation",
+        "text": "Standard of accommodation?",
+        "type": "smiley"
+      },
+      {
+        "id": "food",
+        "text": "Quality of food served?",
+        "type": "rating_5"
+      },
+      {
+        "id": "suggestion",
+        "text": "Any feedback for the centre management?",
+        "type": "text"
+      }
+    ]
+  }
+}
