@@ -7,22 +7,39 @@ const AuthContext = createContext(null);
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [token, setToken] = useState(localStorage.getItem('token'));
+    const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
     const location = useLocation();
 
     useEffect(() => {
-        if (token) {
-            // In a real app, you might validate the token with the backend here
-            // For now, we decode basic info or rely on stored user data if available
-            // Or better, just trust the token presence for protected routes redirects initially
-            // and let the backend reject invalid tokens on API calls.
-
-            // Restore user from local storage if possible or fetch profile
-            const storedUser = localStorage.getItem('user');
-            if (storedUser) {
-                setUser(JSON.parse(storedUser));
+        const verifySession = async () => {
+            if (!token) {
+                setLoading(false);
+                return;
             }
-        }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
+                    headers: { 'Authorization': `Bearer ${token}` },
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    setUser(data);
+                } else {
+                    // Token is invalid or expired
+                    logout();
+                }
+            } catch (error) {
+                console.error('Session verification failed:', error);
+                // On network error, we might want to keep the local state 
+                // but for strict security, we'll just stop loading.
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        verifySession();
     }, [token]);
 
     const login = async (username, password) => {
@@ -62,7 +79,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, token, login, logout }}>
+        <AuthContext.Provider value={{ user, token, loading, login, logout }}>
             {children}
         </AuthContext.Provider>
     );

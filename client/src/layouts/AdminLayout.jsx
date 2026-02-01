@@ -4,13 +4,29 @@ import { useAuth } from '../context/AuthContext';
 import { LayoutDashboard, LogOut, PieChart } from 'lucide-react';
 
 const AdminLayout = () => {
-    const { user, logout } = useAuth();
+    const { user, loading, logout } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
 
+    React.useEffect(() => {
+        if (!loading && !user) {
+            navigate('/admin/login', { replace: true });
+        }
+    }, [user, loading, navigate]);
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                    <p className="text-gray-500 font-medium">Verifying Session...</p>
+                </div>
+            </div>
+        );
+    }
+
     if (!user) {
-        // Simple client-side protection check
-        return <div className="p-10 text-center">Redirecting...</div>;
+        return null; // Navigation is handled in useEffect
     }
 
     const navItems = [
