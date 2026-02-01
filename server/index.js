@@ -1,4 +1,4 @@
-require('dotenv').config();
+const initEnv = require('./config/init');
 const express = require('express');
 const cors = require('cors');
 const feedbackRoutes = require('./routes/feedback');
@@ -13,6 +13,8 @@ app.use(express.json());
 // Routes
 app.use('/api/feedback', feedbackRoutes);
 app.use('/api/config', require('./routes/config'));
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/admin', require('./routes/admin'));
 
 // Database Connection (Embedded NeDB handled in models)
 console.log('Using Embedded Database');

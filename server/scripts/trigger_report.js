@@ -1,6 +1,6 @@
 const path = require('path');
 // Load env vars FIRST
-require('dotenv').config({ path: path.join(__dirname, '../.env') });
+require('../config/init');
 
 const { generateAndSendReports } = require('../services/reportGenerator'); // Adjust path
 const mongoose = require('mongoose');

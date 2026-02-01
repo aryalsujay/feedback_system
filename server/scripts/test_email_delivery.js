@@ -1,6 +1,6 @@
-const path = require('path');
 const fs = require('fs');
-require('dotenv').config({ path: path.join(__dirname, '../.env') });
+require('../config/init');
+const path = require('path');
 const { sendEmail } = require('../services/mailer');
 const { generatePDF } = require('../services/reportGenerator');
 

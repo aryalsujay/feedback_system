@@ -99,15 +99,27 @@ const generatePDF = (deptName, feedbacks, questions) => {
                 if (currentY > 700) {
                     doc.addPage();
                     currentY = 50;
-                    // Re-draw headers on new page? (Optional, skipping for simplicity)
                 }
 
-                // Question Text (Multi-line handling)
-                const qText = q.text;
-                // Calculate height needed for question text
-                const textHeight = doc.heightOfString(qText, { width: 280 });
+                // Question Title & Text
+                // Format ID to Title Case (e.g., 'food_quality' -> 'Food Quality')
+                const title = q.id.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 
-                doc.text(qText, col1X, currentY, { width: 280 });
+                doc.font('Helvetica-Bold').text(title, col1X, currentY, { width: 280 });
+                const titleHeight = doc.heightOfString(title, { width: 280 });
+
+                doc.font('Helvetica').text(q.text, col1X, currentY + titleHeight + 5, { width: 280 });
+                const textHeight = doc.heightOfString(q.text, { width: 280 });
+
+                const totalBlockHeight = titleHeight + 5 + textHeight;
+
+                // Render Stats (aligned with top of block or centered? Top is safer for flow)
+                // Using a slightly offset Y to align with the Title or average it? 
+                // Let's keep it at currentY (aligned with Title) for table row feel, 
+                // OR maybe vertically center if brief. 
+                // Let's stick to currentY for consistency so it looks like:
+                // Heading      Avg   Total
+                // Question...
 
                 if (data.type === 'smiley' || data.type === 'number_rating' || data.type === 'rating_5') {
                     doc.text(`${data.average} / 5`, col2X + 10, currentY);
@@ -117,7 +129,7 @@ const generatePDF = (deptName, feedbacks, questions) => {
                     doc.text(`(Text: ${data.count})`, col3X, currentY);
                 }
 
-                currentY += Math.max(textHeight, 20) + 10;
+                currentY += Math.max(totalBlockHeight, 20) + 15; // Extra spacing between rows
             });
 
             doc.moveDown(2);
@@ -165,7 +177,7 @@ const generatePDF = (deptName, feedbacks, questions) => {
     });
 };
 
-const generateAndSendReports = async (customStart, customEnd) => {
+const generateAndSendReports = async (customStart, customEnd, deptFilter = null) => {
     console.log('Starting weekly report generation...');
 
     const emailsConfig = getConfig('emails.json');
@@ -193,7 +205,11 @@ const generateAndSendReports = async (customStart, customEnd) => {
             groupedFeedback[fb.departmentId].push(fb);
         });
 
-        for (const [deptId, recipients] of Object.entries(emailsConfig)) {
+        const departments = deptFilter || Object.keys(emailsConfig);
+
+        for (const deptId of departments) {
+            const recipients = emailsConfig[deptId];
+            if (!recipients) continue;
             if (deptId === 'admin') continue;
 
             const feedbacks = groupedFeedback[deptId] || [];

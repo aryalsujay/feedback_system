@@ -1,3 +1,4 @@
+require('../config/init');
 const { generateAndSendReports } = require('../services/reportGenerator');
 
 const run = async () => {

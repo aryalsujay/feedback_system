@@ -4,7 +4,7 @@
     "questions": [
       {
         "id": "peaceful",
-        "text": "Did you find the environment peaceful?",
+        "text": "How peaceful did you find the Pagoda environment?",
         "type": "smiley",
         "labels": {
           "1": "Very Noisy",
@@ -16,60 +16,67 @@
       },
       {
         "id": "vipassana_understanding",
-        "text": "Has this visit helped you to gain a good understanding of Vipassana?",
+        "text": "Has the visit helped you gain a better understanding of Vipassana?",
         "type": "number_rating",
         "labels": {
-          "1": "Not satisfied",
-          "2": "Somewhat satisfied",
-          "3": "Neutral",
-          "4": "Satisfied",
-          "5": "Very satisfied"
+          "1": "Not at all",
+          "2": "A little",
+          "3": "Somewhat",
+          "4": "High",
+          "5": "Very High"
         }
       },
       {
         "id": "course_interest",
-        "text": "Would you like to participate in a 10 Day Vipassana Course?",
-        "type": "option_select",
-        "options": [
-          "No!",
-          "Maybe not",
-          "Perhaps later",
-          "Yes! But not now!",
-          "Yes! definitely"
-        ]
+        "text": "After this visit, how interested are you in participating in a 10-Day Vipassana Course?",
+        "type": "number_rating",
+        "labels": {
+          "1": "Not interested",
+          "2": "Slightly interested",
+          "3": "Neutral",
+          "4": "Interested",
+          "5": "Very interested"
+        }
       },
       {
         "id": "cleanliness",
-        "text": "How would you rate the cleanliness of the premises?",
+        "text": "How would you rate the cleanliness of the Pagoda premises?",
         "type": "number_rating",
         "labels": {
-          "1": "Very dirty",
-          "2": "Dirty",
+          "1": "Very Poor",
+          "2": "Poor",
           "3": "Average",
-          "4": "Clean",
-          "5": "Very clean"
+          "4": "Good",
+          "5": "Excellent"
         }
       },
       {
         "id": "staff_behavior",
-        "text": "How was the behavior of the staff?",
+        "text": "How would you rate the conduct and helpfulness of the staff and volunteers?",
         "type": "number_rating",
         "labels": {
-          "1": "Were rude",
-          "2": "Not helpful",
+          "1": "Very Poor",
+          "2": "Poor",
           "3": "Average",
-          "4": "Helpful",
-          "5": "Very helpful"
+          "4": "Good",
+          "5": "Excellent"
         }
       },
       {
         "id": "overall_experience",
-        "text": "Overall experience at the Pagoda",
-        "type": "rating_5"
+        "text": "How would you rate your overall experience at the Pagoda?",
+        "type": "number_rating",
+        "labels": {
+          "1": "Very Poor",
+          "2": "Poor",
+          "3": "Average",
+          "4": "Good",
+          "5": "Excellent"
+        }
       },
       {
         "id": "suggestion",
-        "text": "Suggestions for improvement/Feedback, if any:",
+        "text": "Suggestions or feedback for improvement (if any):",
         "type": "text"
       }
     ]
@@ -78,28 +85,80 @@
     "name": "Food Court",
     "questions": [
       {
-        "id": "food_quality",
-        "text": "How was the quality of the food?",
-        "type": "smiley"
+        "id": "food_taste",
+        "text": "How was the taste of your food?",
+        "type": "smiley",
+        "labels": {
+          "1": "Tasteless",
+          "2": "Fair",
+          "3": "Average",
+          "4": "Good",
+          "5": "Delicious"
+        }
       },
       {
-        "id": "hygiene",
-        "text": "How would you rate the hygiene of the food court?",
-        "type": "smiley"
+        "id": "overall_experience",
+        "text": "How would you rate your overall experience?",
+        "type": "number_rating",
+        "labels": {
+          "1": "Very Poor",
+          "2": "Poor",
+          "3": "Average",
+          "4": "Good",
+          "5": "Excellent"
+        }
+      },
+      {
+        "id": "service_counters",
+        "text": "How was the service at coupon & service counters?",
+        "type": "number_rating",
+        "labels": {
+          "1": "Very Poor",
+          "2": "Poor",
+          "3": "Average",
+          "4": "Good",
+          "5": "Excellent"
+        }
       },
       {
         "id": "service_speed",
-        "text": "How was the speed of service?",
-        "type": "smiley"
+        "text": "How would you rate the speed of service during your visit?",
+        "type": "number_rating",
+        "labels": {
+          "1": "Very Poor",
+          "2": "Poor",
+          "3": "Average",
+          "4": "Good",
+          "5": "Excellent"
+        }
       },
       {
-        "id": "value_for_money",
-        "text": "Value for money?",
-        "type": "rating_5"
+        "id": "cleanliness",
+        "text": "How would you rate the cleanliness of our restaurant?",
+        "type": "number_rating",
+        "labels": {
+          "1": "Very Poor",
+          "2": "Poor",
+          "3": "Average",
+          "4": "Good",
+          "5": "Excellent"
+        }
+      },
+      {
+        "id": "food_quality",
+        "text": "How was the quality of the food served to you?",
+        "type": "number_rating",
+        "labels": {
+          "1": "Very Poor",
+          "2": "Poor",
+          "3": "Average",
+          "4": "Good",
+          "5": "Excellent"
+        }
       },
       {
         "id": "suggestion",
-        "text": "Suggestions for menu or service?",
+        "text": "Suggestions for improvement/Feedback, if any:",
         "type": "text"
       }
     ]
@@ -108,23 +167,73 @@
     "name": "Souvenir Shop",
     "questions": [
       {
-        "id": "variety",
-        "text": "Variety of items available?",
+        "id": "overall_experience",
+        "text": "How would you rate your overall experience with us?",
         "type": "smiley"
       },
       {
-        "id": "pricing",
-        "text": "Are the prices reasonable?",
-        "type": "smiley"
+        "id": "product_search",
+        "text": "Did you find the product you were looking for, and did it meet your needs?",
+        "type": "number_rating",
+        "labels": {
+          "1": "Very Poor",
+          "2": "Poor",
+          "3": "Average",
+          "4": "Good",
+          "5": "Excellent"
+        }
       },
       {
-        "id": "staff_helpfulness",
-        "text": "Was the staff helpful?",
-        "type": "rating_5"
+        "id": "product_quality",
+        "text": "How would you rate the quality and durability of the product?",
+        "type": "number_rating",
+        "labels": {
+          "1": "Very Poor",
+          "2": "Poor",
+          "3": "Average",
+          "4": "Good",
+          "5": "Excellent"
+        }
+      },
+      {
+        "id": "price_reasonableness",
+        "text": "How reasonable were the prices considering the quality offered?",
+        "type": "number_rating",
+        "labels": {
+          "1": "Very Poor",
+          "2": "Poor",
+          "3": "Average",
+          "4": "Good",
+          "5": "Excellent"
+        }
+      },
+      {
+        "id": "staff_knowledge",
+        "text": "How helpful and knowledgeable was the staff in guiding you?",
+        "type": "number_rating",
+        "labels": {
+          "1": "Very Poor",
+          "2": "Poor",
+          "3": "Average",
+          "4": "Good",
+          "5": "Excellent"
+        }
+      },
+      {
+        "id": "recommendation_likelihood",
+        "text": "How likely are you to recommend our product/store to others?",
+        "type": "number_rating",
+        "labels": {
+          "1": "Very Poor",
+          "2": "Poor",
+          "3": "Average",
+          "4": "Good",
+          "5": "Excellent"
+        }
       },
       {
         "id": "suggestion",
-        "text": "What other items would you like to see?",
+        "text": "Suggestions for improvement/Feedback, if any:",
         "type": "text"
       }
     ]
@@ -133,23 +242,85 @@
     "name": "Dhammalaya",
     "questions": [
       {
-        "id": "checkin_process",
-        "text": "How was the check-in process?",
+        "id": "overall_experience",
+        "text": "How would you rate your overall experience during your stay?",
         "type": "smiley"
       },
       {
-        "id": "room_cleanliness",
-        "text": "Cleanliness of the room/dorm?",
-        "type": "smiley"
+        "id": "room_comfort",
+        "text": "How comfortable and well-maintained was your room?",
+        "type": "number_rating",
+        "labels": {
+          "1": "Very Poor",
+          "2": "Poor",
+          "3": "Average",
+          "4": "Good",
+          "5": "Excellent"
+        }
       },
       {
-        "id": "facilities",
-        "text": "Adequacy of facilities provided?",
-        "type": "rating_5"
+        "id": "cleanliness",
+        "text": "How would you rate the cleanliness of the room, bed linens, and washrooms?",
+        "type": "number_rating",
+        "labels": {
+          "1": "Very Poor",
+          "2": "Poor",
+          "3": "Average",
+          "4": "Good",
+          "5": "Excellent"
+        }
+      },
+      {
+        "id": "food_quality",
+        "text": "How would you rate the quality of the food served?",
+        "type": "number_rating",
+        "labels": {
+          "1": "Very Poor",
+          "2": "Poor",
+          "3": "Average",
+          "4": "Good",
+          "5": "Excellent"
+        }
+      },
+      {
+        "id": "staff_support",
+        "text": "How would you rate the services offered and staff support?",
+        "type": "number_rating",
+        "labels": {
+          "1": "Very Poor",
+          "2": "Poor",
+          "3": "Average",
+          "4": "Good",
+          "5": "Excellent"
+        }
+      },
+      {
+        "id": "rates_reasonableness",
+        "text": "How reasonable were the rates considering the facilities and services?",
+        "type": "number_rating",
+        "labels": {
+          "1": "Very Poor",
+          "2": "Poor",
+          "3": "Average",
+          "4": "Good",
+          "5": "Excellent"
+        }
+      },
+      {
+        "id": "recommendation_likelihood",
+        "text": "How likely are you to recommend this place to others?",
+        "type": "number_rating",
+        "labels": {
+          "1": "Very Poor",
+          "2": "Poor",
+          "3": "Average",
+          "4": "Good",
+          "5": "Excellent"
+        }
       },
       {
         "id": "suggestion",
-        "text": "Any suggestions?",
+        "text": "Suggestions for improvement/Feedback, if any:",
         "type": "text"
       }
     ]
@@ -158,23 +329,85 @@
     "name": "Dhamma Pattana Vipassana Centre",
     "questions": [
       {
-        "id": "course_management",
-        "text": "How was the course management?",
+        "id": "overall_experience",
+        "text": "How would you rate your overall experience at the centre during the course?",
         "type": "smiley"
       },
       {
         "id": "accommodation",
-        "text": "Standard of accommodation?",
-        "type": "smiley"
+        "text": "How satisfied were you with the accommodation and cleanliness of the centre?",
+        "type": "number_rating",
+        "labels": {
+          "1": "Very Poor",
+          "2": "Poor",
+          "3": "Average",
+          "4": "Good",
+          "5": "Excellent"
+        }
       },
       {
-        "id": "food",
-        "text": "Quality of food served?",
-        "type": "rating_5"
+        "id": "food_dining",
+        "text": "How satisfied were you with the food and dining arrangements?",
+        "type": "number_rating",
+        "labels": {
+          "1": "Very Poor",
+          "2": "Poor",
+          "3": "Average",
+          "4": "Good",
+          "5": "Excellent"
+        }
+      },
+      {
+        "id": "meditation_facilities",
+        "text": "How suitable were the meditation hall and related facilities for practice?",
+        "type": "number_rating",
+        "labels": {
+          "1": "Very Poor",
+          "2": "Poor",
+          "3": "Average",
+          "4": "Good",
+          "5": "Excellent"
+        }
+      },
+      {
+        "id": "course_management",
+        "text": "How well was the course managed, including discipline and daily schedule?",
+        "type": "number_rating",
+        "labels": {
+          "1": "Very Poor",
+          "2": "Poor",
+          "3": "Average",
+          "4": "Good",
+          "5": "Excellent"
+        }
+      },
+      {
+        "id": "guidance_support",
+        "text": "How satisfied were you with the Dhamma guidance and support provided during the course?",
+        "type": "number_rating",
+        "labels": {
+          "1": "Very Poor",
+          "2": "Poor",
+          "3": "Average",
+          "4": "Good",
+          "5": "Excellent"
+        }
+      },
+      {
+        "id": "recommendation_likelihood",
+        "text": "How likely are you to recommend this centre to other serious Vipassana students?",
+        "type": "number_rating",
+        "labels": {
+          "1": "Very Poor",
+          "2": "Poor",
+          "3": "Average",
+          "4": "Good",
+          "5": "Excellent"
+        }
       },
       {
         "id": "suggestion",
-        "text": "Any feedback for the centre management?",
+        "text": "Suggestions for improvement/Feedback, if any:",
         "type": "text"
       }
     ]
