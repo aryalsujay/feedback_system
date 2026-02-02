@@ -1,23 +1,25 @@
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
+require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 
 const seedAdmins = async () => {
-    // Map internal department IDs to the requested usernames
+    // Map internal department IDs to the requested usernames with their password env variables
     const deptMapping = {
-        'global_pagoda': 'gvp',
-        'food_court': 'fc',
-        'souvenir_shop': 'svct',
-        'dhamma_alaya': 'dlaya',
-        'dpvc': 'dpvc'
+        'global_pagoda': { username: 'gvp', passwordEnv: 'ADMIN_GVP_PASSWORD' },
+        'food_court': { username: 'fc', passwordEnv: 'ADMIN_FC_PASSWORD' },
+        'souvenir_shop': { username: 'svct', passwordEnv: 'ADMIN_SVCT_PASSWORD' },
+        'dhamma_alaya': { username: 'dlaya', passwordEnv: 'ADMIN_DLAYA_PASSWORD' },
+        'dpvc': { username: 'dpvc', passwordEnv: 'ADMIN_DPVC_PASSWORD' }
     };
 
     const users = [];
 
     // Create Department Admins
-    for (const [deptId, username] of Object.entries(deptMapping)) {
+    for (const [deptId, config] of Object.entries(deptMapping)) {
+        const password = process.env[config.passwordEnv] || '1234';
         users.push({
-            username: username,
-            password: '1234',
+            username: config.username,
+            password: password,
             role: 'admin',
             department: deptId
         });
@@ -26,7 +28,7 @@ const seedAdmins = async () => {
     // Create Super Admin
     users.push({
         username: 'admin',
-        password: '1234',
+        password: process.env.SUPER_ADMIN_PASSWORD || '1234',
         role: 'super_admin',
         department: 'global'
     });
