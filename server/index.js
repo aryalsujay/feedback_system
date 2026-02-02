@@ -9,23 +9,32 @@ const PORT = process.env.PORT || 5000;
 const path = require('path');
 
 // Middleware
-app.use(cors());
+// CORS: Allow all origins for development/IP-based access
+app.use(cors({
+    origin: true, // Allows any origin
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 
-// Serve static files from the React app
-app.use(express.static(path.join(__dirname, '../client/dist')));
-
-// Routes
+// Routes - Define API routes BEFORE static file serving
 app.use('/api/feedback', feedbackRoutes);
 app.use('/api/config', require('./routes/config'));
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/admin', require('./routes/admin'));
 
-// Catch-all route to serve React's index.html for any non-API routes
-app.get('*', (req, res) => {
-    // Only serve index.html for non-API routes
+// Serve static files from the React app
+app.use(express.static(path.join(__dirname, '../client/dist')));
+
+// SPA fallback: serve index.html for all non-API, non-static routes
+// This handles client-side routing (React Router)
+app.use((req, res, next) => {
+    // Only serve index.html for non-API routes that didn't match a static file
     if (!req.path.startsWith('/api/')) {
         res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+    } else {
+        next();
     }
 });
 

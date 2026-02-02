@@ -55,7 +55,12 @@ else
 fi
 
 echo "🚀 Starting Frontend Dashboard..."
-echo "👉 Application will be available at: http://localhost:5173"
+echo "👉 Local Access: http://localhost:5173"
+# Get the server's IP address
+SERVER_IP=$(hostname -I | awk '{print $1}')
+if [ -n "$SERVER_IP" ]; then
+    echo "👉 Network Access: http://$SERVER_IP:5173"
+fi
 echo "   (Press Ctrl+C to stop both server and client)"
 echo "------------------------------------------"
 

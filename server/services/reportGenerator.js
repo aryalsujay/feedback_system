@@ -145,7 +145,7 @@ const generatePDF = (deptName, feedbacks, questions) => {
 
                 const submitter = fb.name && fb.name !== 'Anonymous' ? `${fb.name} (${fb.email || 'No Email'})` : 'Anonymous';
 
-                doc.fontSize(14).font('Helvetica-Bold').text(`Submission #${index + 1} - ${new Date(fb.submittedAt).toLocaleString()}`, { underline: true });
+                doc.fontSize(14).font('Helvetica-Bold').text(`Submission #${index + 1} - ${new Date(fb.createdAt).toLocaleString()}`, { underline: true });
                 doc.fontSize(10).font('Helvetica').text(`From: ${submitter}`);
                 doc.moveDown(0.5);
                 doc.fontSize(12);
@@ -191,7 +191,7 @@ const generateAndSendReports = async (customStart, customEnd, deptFilter = null)
 
     try {
         const feedbackList = await Feedback.find({
-            submittedAt: { $gte: startDate, $lt: endDate }
+            createdAt: { $gte: startDate, $lt: endDate }
         });
 
         console.log(`Found ${feedbackList.length} feedbacks in total.`);
@@ -199,10 +199,10 @@ const generateAndSendReports = async (customStart, customEnd, deptFilter = null)
         const groupedFeedback = {};
 
         feedbackList.forEach(fb => {
-            if (!groupedFeedback[fb.departmentId]) {
-                groupedFeedback[fb.departmentId] = [];
+            if (!groupedFeedback[fb.department]) {
+                groupedFeedback[fb.department] = [];
             }
-            groupedFeedback[fb.departmentId].push(fb);
+            groupedFeedback[fb.department].push(fb);
         });
 
         const departments = deptFilter || Object.keys(emailsConfig);

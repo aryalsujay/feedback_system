@@ -13,6 +13,9 @@ export default defineConfig({
     },
   },
   server: {
-    allowedHosts: ['all']
+    host: '0.0.0.0', // Bind to all network interfaces for IP-based access
+    port: 5173,
+    allowedHosts: ['all'],
+    strictPort: false
   }
 })
