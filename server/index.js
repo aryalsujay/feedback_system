@@ -42,7 +42,7 @@ app.use((req, res, next) => {
 console.log('Using Embedded Database');
 
 // Start Server
-app.listen(PORT, '0.0.0.0', () => {
+const server = app.listen(PORT, '0.0.0.0', () => {
     const os = require('os');
     const interfaces = os.networkInterfaces();
     const addresses = [];
@@ -60,5 +60,14 @@ app.listen(PORT, '0.0.0.0', () => {
     addresses.forEach(addr => console.log(`🔗 Network Address: http://${addr}:${PORT}`));
     console.log('\n');
 
-    require('./services/scheduler').initScheduler();
+    try {
+        require('./services/scheduler').initScheduler();
+    } catch (error) {
+        console.error('Error initializing scheduler:', error);
+    }
+});
+
+server.on('error', (error) => {
+    console.error('Server error:', error);
+    process.exit(1);
 });
