@@ -46,12 +46,14 @@ const syncPasswords = async () => {
             // Hash the new password
             const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-            // Update user password
-            await User.update(
-                { username },
-                { $set: { password: hashedPassword } },
-                {}
-            );
+            // Remove old user and insert with new password
+            await User.remove({ username });
+            await User.insert({
+                username: user.username,
+                password: hashedPassword,
+                role: user.role,
+                department: user.department
+            });
 
             console.log(`✅ Updated password for: ${username} (${user.role})`);
             successCount++;
