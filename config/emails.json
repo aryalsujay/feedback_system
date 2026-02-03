@@ -1,20 +1,20 @@
 {
-    "global_pagoda": [
-        "tod@vridhamma.org"
-    ],
-    "food_court": [
-        "tod@vridhamma.org"
-    ],
-    "souvenir_shop": [
-        "tod@vridhamma.org"
-    ],
-    "dhamma_alaya": [
-        "tod@vridhamma.org"
-    ],
-    "dpvc": [
-        "tod@vridhamma.org"
-    ],
-    "admin": [
-        "tod@vridhamma.org"
-    ]
+  "global_pagoda": [
+    "pr@globalpagoda.org"
+  ],
+  "food_court": [
+    "tod@vridhamma.org"
+  ],
+  "souvenir_shop": [
+    "tod@vridhamma.org"
+  ],
+  "dhamma_alaya": [
+    "tod@vridhamma.org"
+  ],
+  "dpvc": [
+    "tod@vridhamma.org"
+  ],
+  "admin": [
+    "tod@vridhamma.org"
+  ]
 }

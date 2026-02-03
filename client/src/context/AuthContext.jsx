@@ -44,14 +44,19 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (username, password) => {
         try {
+            console.log('Login attempt:', { username, passwordLength: password.length, apiUrl: `${API_BASE_URL}/api/auth/login` });
+
             const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, password }),
             });
 
+            console.log('Login response status:', response.status);
+
             if (!response.ok) {
                 const error = await response.json();
+                console.error('Login error response:', error);
                 throw new Error(error.message || 'Login failed');
             }
 

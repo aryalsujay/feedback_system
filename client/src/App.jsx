@@ -11,6 +11,7 @@ import LoginPage from './pages/admin/LoginPage';
 import AdminLayout from './layouts/AdminLayout';
 import Dashboard from './pages/admin/Dashboard';
 import Analytics from './pages/admin/Analytics';
+import Settings from './pages/admin/Settings';
 
 const SuccessPage = () => (
   <div className="min-h-screen flex flex-col items-center justify-center text-center p-8 relative overflow-hidden">
@@ -47,6 +48,7 @@ function App() {
               <Route index element={<Navigate to="/admin/analytics" replace />} />
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="analytics" element={<Analytics />} />
+              <Route path="settings" element={<Settings />} />
             </Route>
 
             <Route path="*" element={<Navigate to="/" replace />} />

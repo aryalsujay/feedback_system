@@ -1,7 +1,7 @@
 import React from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, LogOut, PieChart } from 'lucide-react';
+import { LayoutDashboard, LogOut, PieChart, Settings } from 'lucide-react';
 
 const AdminLayout = () => {
     const { user, loading, logout } = useAuth();
@@ -32,6 +32,7 @@ const AdminLayout = () => {
     const navItems = [
         { path: '/admin/analytics', icon: PieChart, label: 'Analytics' },
         { path: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+        { path: '/admin/settings', icon: Settings, label: 'Settings' },
     ];
 
     return (

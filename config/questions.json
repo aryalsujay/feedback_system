@@ -169,7 +169,14 @@
       {
         "id": "overall_experience",
         "text": "How would you rate your overall experience with us?",
-        "type": "smiley"
+        "type": "smiley",
+        "labels": {
+          "1": "Very Poor",
+          "2": "Poor",
+          "3": "Average",
+          "4": "Good",
+          "5": "Excellent"
+        }
       },
       {
         "id": "product_search",
@@ -244,7 +251,14 @@
       {
         "id": "overall_experience",
         "text": "How would you rate your overall experience during your stay?",
-        "type": "smiley"
+        "type": "smiley",
+        "labels": {
+          "1": "Very Poor",
+          "2": "Poor",
+          "3": "Average",
+          "4": "Good",
+          "5": "Excellent"
+        }
       },
       {
         "id": "room_comfort",
@@ -331,7 +345,14 @@
       {
         "id": "overall_experience",
         "text": "How would you rate your overall experience at the centre during the course?",
-        "type": "smiley"
+        "type": "smiley",
+        "labels": {
+          "1": "Very Poor",
+          "2": "Poor",
+          "3": "Average",
+          "4": "Good",
+          "5": "Excellent"
+        }
       },
       {
         "id": "accommodation",

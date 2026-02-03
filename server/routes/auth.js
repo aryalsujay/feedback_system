@@ -10,13 +10,22 @@ const User = require('../models/User');
 router.post('/login', async (req, res) => {
     const { username, password } = req.body;
 
+    // Debug logging
+    console.log('Login attempt:', {
+        username,
+        passwordLength: password?.length,
+        passwordChars: password?.split('').map(c => c.charCodeAt(0))
+    });
+
     try {
         const user = await User.findOne({ username });
         if (!user) {
+            console.log('User not found:', username);
             return res.status(400).json({ message: 'Invalid credentials' });
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
+        console.log('Password match result:', isMatch, 'for user:', username);
         if (!isMatch) {
             return res.status(400).json({ message: 'Invalid credentials' });
         }

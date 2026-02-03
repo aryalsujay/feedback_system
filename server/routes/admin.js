@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/authMiddleware');
 const Feedback = require('../models/Feedback');
+const ReportSettings = require('../models/ReportSettings');
+const { refreshDepartmentSchedule } = require('../services/scheduler');
 
 // @route   GET /api/admin/submissions
 // @desc    Get all feedback submissions (filtered by role)
@@ -184,6 +186,86 @@ router.get('/analytics', auth, async (req, res) => {
             recentFeedbacks: feedbacks.slice(-5).reverse()
         });
 
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
+// @route   GET /api/admin/report-settings
+// @desc    Get report schedule settings for the department
+// @access  Private (Admin/Super Admin)
+router.get('/report-settings', auth, async (req, res) => {
+    try {
+        const { role, department } = req.user;
+
+        // Admins can only view their own department settings
+        const deptToQuery = role === 'admin' ? department : (req.query.department || department);
+
+        let settings = await ReportSettings.findOne({ department: deptToQuery });
+
+        // If no settings exist, return defaults
+        if (!settings) {
+            settings = {
+                department: deptToQuery,
+                dayOfWeek: 0, // Sunday
+                hour: 9,
+                minute: 0,
+                enabled: true
+            };
+        }
+
+        res.json(settings);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
+// @route   PUT /api/admin/report-settings
+// @desc    Update report schedule settings for the department
+// @access  Private (Admin/Super Admin)
+router.put('/report-settings', auth, async (req, res) => {
+    try {
+        const { role, department } = req.user;
+        const { dayOfWeek, hour, minute, enabled } = req.body;
+
+        // Validation
+        if (dayOfWeek < 0 || dayOfWeek > 6) {
+            return res.status(400).json({ msg: 'Invalid day of week (0-6)' });
+        }
+        if (hour < 0 || hour > 23) {
+            return res.status(400).json({ msg: 'Invalid hour (0-23)' });
+        }
+        if (minute < 0 || minute > 59) {
+            return res.status(400).json({ msg: 'Invalid minute (0-59)' });
+        }
+
+        // Admins can only update their own department settings
+        const deptToUpdate = role === 'admin' ? department : (req.body.department || department);
+
+        const settingsData = {
+            department: deptToUpdate,
+            dayOfWeek,
+            hour,
+            minute,
+            enabled: enabled !== undefined ? enabled : true,
+            updatedAt: new Date()
+        };
+
+        // Upsert: Update if exists, insert if doesn't
+        const numReplaced = await ReportSettings.update(
+            { department: deptToUpdate },
+            settingsData,
+            { upsert: true }
+        );
+
+        const updatedSettings = await ReportSettings.findOne({ department: deptToUpdate });
+
+        // Refresh the scheduler for this department
+        await refreshDepartmentSchedule(deptToUpdate);
+
+        res.json(updatedSettings);
     } catch (err) {
         console.error(err.message);
         res.status(500).send('Server Error');
