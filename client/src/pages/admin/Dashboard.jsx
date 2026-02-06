@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { Search, Filter, Calendar, AlertTriangle, XCircle } from 'lucide-react';
+import Pagination from '../../components/Pagination';
 
 import { API_BASE_URL } from '../../config';
 
@@ -10,18 +11,21 @@ const Dashboard = () => {
     const [loading, setLoading] = useState(true);
     const [selectedDept, setSelectedDept] = useState('global');
     const [expandedId, setExpandedId] = useState(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage] = useState(20); // 20 items per page
 
     const departments = ['global_pagoda', 'food_court', 'souvenir_shop', 'dhamma_alaya', 'dpvc', 'global'];
 
     useEffect(() => {
         fetchFeedbacks();
+        setCurrentPage(1); // Reset to page 1 when department changes
     }, [selectedDept]);
 
     const fetchFeedbacks = async () => {
         try {
             setLoading(true);
             let url = `${API_BASE_URL}/api/admin/submissions`;
-            if (user.role === 'super_admin' && selectedDept !== 'global') {
+            if ((user.role === 'super_admin' || (user.role === 'admin' && user.department === 'global')) && selectedDept !== 'global') {
                 url += `?department=${selectedDept}`;
             }
 
@@ -42,18 +46,34 @@ const Dashboard = () => {
         }
     };
 
-    // Filter critical alerts removed as per feedback
-    // const criticalAlerts = feedbacks.filter(f => f.sentiment === 'Negative').slice(0, 3);
+    // Pagination calculations
+    const totalPages = Math.ceil(feedbacks.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const paginatedFeedbacks = feedbacks.slice(startIndex, endIndex);
+
+    const handlePageChange = (page) => {
+        setCurrentPage(page);
+        setExpandedId(null); // Collapse expanded items when changing page
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
 
     return (
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                     <h2 className="text-2xl font-bold text-gray-800">Feedback Submissions</h2>
-                    <p className="text-gray-500 text-sm mt-1">Manage and view incoming feedback</p>
+                    <p className="text-gray-500 text-sm mt-1">
+                        Manage and view incoming feedback
+                        {feedbacks.length > 0 && (
+                            <span className="ml-2 text-blue-600 font-medium">
+                                ({feedbacks.length} total)
+                            </span>
+                        )}
+                    </p>
                 </div>
 
-                {user.role === 'super_admin' && (
+                {(user.role === 'super_admin' || (user.role === 'admin' && user.department === 'global')) && (
                     <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-gray-200 shadow-sm">
                         <Filter size={16} className="text-gray-500" />
                         <select
@@ -63,145 +83,262 @@ const Dashboard = () => {
                         >
                             <option value="global">All Departments</option>
                             {departments.filter(d => d !== 'global').map(d => (
-                                <option key={d} value={d} className="capitalize">{d}</option>
+                                <option key={d} value={d} className="capitalize">{d.replace('_', ' ')}</option>
                             ))}
                         </select>
                     </div>
                 )}
             </div>
 
-            {/* Critical Alerts Section Removed */}
-
             {loading ? (
                 <div className="text-center py-20 text-gray-500">Loading feedback...</div>
+            ) : feedbacks.length === 0 ? (
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
+                    <p className="text-gray-400">No feedback found for this selection.</p>
+                </div>
             ) : (
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm text-left">
-                            <thead className="text-xs text-gray-500 uppercase bg-gray-50 border-b border-gray-100">
-                                <tr className="text-gray-600">
-                                    <th className="px-6 py-4 font-semibold w-10"></th>
-                                    <th className="px-6 py-4 font-semibold">Date</th>
-                                    <th className="px-6 py-4 font-semibold">Department</th>
-                                    <th className="px-6 py-4 font-semibold text-center">Score</th>
-                                    <th className="px-6 py-4 font-semibold">Feedback Summary</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-100">
-                                {feedbacks.length === 0 ? (
-                                    <tr>
-                                        <td colSpan="5" className="px-6 py-12 text-center text-gray-400">
-                                            No feedback found for this selection.
-                                        </td>
+                <>
+                    {/* Desktop Table View (hidden on mobile) */}
+                    <div className="hidden md:block bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-sm text-left">
+                                <thead className="text-xs text-gray-500 uppercase bg-gray-50 border-b border-gray-100">
+                                    <tr className="text-gray-600">
+                                        <th className="px-6 py-4 font-semibold w-10"></th>
+                                        <th className="px-6 py-4 font-semibold">Date</th>
+                                        <th className="px-6 py-4 font-semibold">Department</th>
+                                        <th className="px-6 py-4 font-semibold text-center">Score</th>
+                                        <th className="px-6 py-4 font-semibold">Feedback Summary</th>
                                     </tr>
-                                ) : (
-                                    feedbacks.map((item) => (
-                                        <React.Fragment key={item._id}>
-                                            <tr
-                                                className={`hover:bg-gray-50/80 transition-colors cursor-pointer ${expandedId === item._id ? 'bg-blue-50/30' : ''}`}
-                                                onClick={() => setExpandedId(expandedId === item._id ? null : item._id)}
-                                            >
-                                                <td className="px-6 py-4">
-                                                    <div className={`transform transition-transform duration-200 ${expandedId === item._id ? 'rotate-90 text-blue-600' : 'text-gray-300'}`}>
-                                                        ▶
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 text-gray-600 whitespace-nowrap">
-                                                    {new Date(item.createdAt).toLocaleDateString()}
-                                                </td>
-                                                <td className="px-6 py-4 capitalize text-gray-800 font-medium">
-                                                    {item.department.replace('_', ' ')}
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    {(() => {
-                                                        let s = 0, c = 0;
-                                                        if (item.answers) {
-                                                            Object.values(item.answers).forEach(v => {
-                                                                const n = Number(v);
-                                                                if (!isNaN(n) && n >= 1 && n <= 5) { s += n; c++; }
-                                                            });
-                                                        }
-                                                        const score = c > 0 ? (s / c).toFixed(1) : 'N/A';
-                                                        return (
-                                                            <div className="flex flex-col items-center justify-center">
-                                                                <span className={`text-lg font-bold ${Number(score) < 3 ? 'text-red-500' : Number(score) < 4 ? 'text-yellow-600' : 'text-green-600'}`}>
-                                                                    {score}
-                                                                </span>
-                                                                <span className="text-[10px] text-gray-400 uppercase tracking-tighter">Score / 5</span>
-                                                            </div>
-                                                        );
-                                                    })()}
-                                                </td>
-                                                <td className="px-6 py-4 text-gray-600 max-w-sm">
-                                                    <div className="flex flex-col">
-                                                        <span className="truncate italic text-gray-800">
-                                                            "{item.feedback.length > 60 ? item.feedback.substring(0, 60) + '...' : item.feedback}"
-                                                        </span>
-                                                        <div className="flex items-center gap-2 mt-1">
-                                                            <span className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded uppercase font-bold">{item.category || 'General'}</span>
-                                                            <span className="text-[10px] text-gray-400 font-medium">{item.name || 'Anonymous'}</span>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                            {expandedId === item._id && (
-                                                <tr className="bg-gray-50/50">
-                                                    <td colSpan="5" className="px-12 py-6 border-l-4 border-blue-500 shadow-inner">
-                                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in">
-                                                            {/* Detailed Answers Breakdown */}
-                                                            <div className="col-span-full mb-2">
-                                                                <h4 className="text-sm font-bold text-gray-700 uppercase tracking-wider mb-4 border-b pb-2 flex justify-between">
-                                                                    <span>Full Survey Responses</span>
-                                                                    <span className="text-gray-400 text-xs font-normal">Submission ID: {item._id}</span>
-                                                                </h4>
-                                                            </div>
-                                                            {Object.entries(item.answers || {}).map(([key, val], idx) => {
-                                                                if (key === 'suggestion') return null; // Already in feedback text
-                                                                const numVal = Number(val);
-                                                                const isRating = !isNaN(numVal) && numVal >= 1 && numVal <= 5;
+                                </thead>
+                                <tbody className="divide-y divide-gray-100">
+                                    {paginatedFeedbacks.map((item) => {
+                                        let s = 0, c = 0;
+                                        if (item.answers) {
+                                            Object.values(item.answers).forEach(v => {
+                                                const n = Number(v);
+                                                if (!isNaN(n) && n >= 1 && n <= 5) { s += n; c++; }
+                                            });
+                                        }
+                                        const score = c > 0 ? (s / c).toFixed(1) : 'N/A';
 
-                                                                return (
-                                                                    <div key={idx} className="flex flex-col bg-white p-3 rounded-lg border border-gray-100 shadow-sm transition-all hover:border-blue-200">
-                                                                        <span className="text-[10px] font-bold text-gray-400 uppercase mb-1 truncate" title={key.replace(/_/g, ' ')}>
-                                                                            {key.replace(/_/g, ' ')}
-                                                                        </span>
-                                                                        {isRating ? (
-                                                                            <div className="flex justify-between items-center">
-                                                                                <div className="flex gap-1">
-                                                                                    {[1, 2, 3, 4, 5].map(star => (
-                                                                                        <div key={star} className={`w-2.5 h-2.5 rounded-full ${star <= numVal ? 'bg-pagoda-gold shadow-sm' : 'bg-gray-100'}`}></div>
-                                                                                    ))}
-                                                                                </div>
-                                                                                <span className={`text-sm font-bold ${numVal < 3 ? 'text-red-600' : numVal < 4 ? 'text-yellow-600' : 'text-green-600'}`}>{numVal}/5</span>
-                                                                            </div>
-                                                                        ) : (
-                                                                            <span className="text-sm text-gray-700 italic border-l-2 border-gray-100 pl-2">"{val}"</span>
-                                                                        )}
-                                                                    </div>
-                                                                );
-                                                            })}
-                                                            <div className="col-span-full mt-4 p-5 bg-white rounded-xl border border-gray-100 shadow-sm">
-                                                                <h4 className="text-[10px] font-bold text-gray-400 uppercase mb-3 tracking-widest">Full Feedback Comment</h4>
-                                                                <p className="text-gray-800 whitespace-pre-wrap leading-relaxed font-serif text-lg">"{item.feedback}"</p>
-                                                                <div className="mt-6 pt-4 border-t border-gray-50 flex flex-wrap gap-y-2 justify-between items-center text-[10px] text-gray-400 font-medium uppercase tracking-wider">
-                                                                    <div className="flex gap-4">
-                                                                        <span>👤 {item.name || 'Anonymous'}</span>
-                                                                        <span>📧 {item.email || 'No Email'}</span>
-                                                                    </div>
-                                                                    <span>🕒 Recorded: {new Date(item.createdAt).toLocaleString()}</span>
-                                                                </div>
+                                        return (
+                                            <React.Fragment key={item._id}>
+                                                <tr
+                                                    className={`hover:bg-gray-50/80 transition-colors cursor-pointer ${expandedId === item._id ? 'bg-blue-50/30' : ''}`}
+                                                    onClick={() => setExpandedId(expandedId === item._id ? null : item._id)}
+                                                >
+                                                    <td className="px-6 py-4">
+                                                        <div className={`transform transition-transform duration-200 ${expandedId === item._id ? 'rotate-90 text-blue-600' : 'text-gray-300'}`}>
+                                                            ▶
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-gray-600 whitespace-nowrap">
+                                                        {new Date(item.createdAt).toLocaleDateString()}
+                                                    </td>
+                                                    <td className="px-6 py-4 capitalize text-gray-800 font-medium">
+                                                        {item.department.replace('_', ' ')}
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <div className="flex flex-col items-center justify-center">
+                                                            <span className={`text-lg font-bold ${Number(score) < 3 ? 'text-red-500' : Number(score) < 4 ? 'text-yellow-600' : 'text-green-600'}`}>
+                                                                {score}
+                                                            </span>
+                                                            <span className="text-[10px] text-gray-400 uppercase tracking-tighter">Score / 5</span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-gray-600 max-w-sm">
+                                                        <div className="flex flex-col">
+                                                            <span className="truncate italic text-gray-800">
+                                                                "{item.feedback.length > 60 ? item.feedback.substring(0, 60) + '...' : item.feedback}"
+                                                            </span>
+                                                            <div className="flex items-center gap-2 mt-1">
+                                                                <span className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded uppercase font-bold">{item.category || 'General'}</span>
+                                                                <span className="text-[10px] text-gray-400 font-medium">{item.name || 'Anonymous'}</span>
                                                             </div>
                                                         </div>
                                                     </td>
                                                 </tr>
-                                            )}
-                                        </React.Fragment>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
+                                                {expandedId === item._id && (
+                                                    <tr className="bg-gray-50/50">
+                                                        <td colSpan="5" className="px-6 md:px-12 py-6 border-l-4 border-blue-500 shadow-inner">
+                                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 animate-fade-in">
+                                                                <div className="col-span-full mb-2">
+                                                                    <h4 className="text-xs md:text-sm font-bold text-gray-700 uppercase tracking-wider mb-4 border-b pb-2 flex flex-col sm:flex-row justify-between gap-2">
+                                                                        <span>Full Survey Responses</span>
+                                                                        <span className="text-gray-400 text-xs font-normal">ID: {item._id}</span>
+                                                                    </h4>
+                                                                </div>
+                                                                {Object.entries(item.answers || {}).map(([key, val], idx) => {
+                                                                    if (key === 'suggestion') return null;
+                                                                    const numVal = Number(val);
+                                                                    const isRating = !isNaN(numVal) && numVal >= 1 && numVal <= 5;
+
+                                                                    return (
+                                                                        <div key={idx} className="flex flex-col bg-white p-3 rounded-lg border border-gray-100 shadow-sm transition-all hover:border-blue-200">
+                                                                            <span className="text-[10px] font-bold text-gray-400 uppercase mb-1 truncate" title={key.replace(/_/g, ' ')}>
+                                                                                {key.replace(/_/g, ' ')}
+                                                                            </span>
+                                                                            {isRating ? (
+                                                                                <div className="flex justify-between items-center">
+                                                                                    <div className="flex gap-1">
+                                                                                        {[1, 2, 3, 4, 5].map(star => (
+                                                                                            <div key={star} className={`w-2.5 h-2.5 rounded-full ${star <= numVal ? 'bg-pagoda-gold shadow-sm' : 'bg-gray-100'}`}></div>
+                                                                                        ))}
+                                                                                    </div>
+                                                                                    <span className={`text-sm font-bold ${numVal < 3 ? 'text-red-600' : numVal < 4 ? 'text-yellow-600' : 'text-green-600'}`}>{numVal}/5</span>
+                                                                                </div>
+                                                                            ) : (
+                                                                                <span className="text-sm text-gray-700 italic border-l-2 border-gray-100 pl-2">"{val}"</span>
+                                                                            )}
+                                                                        </div>
+                                                                    );
+                                                                })}
+                                                                <div className="col-span-full mt-4 p-4 md:p-5 bg-white rounded-xl border border-gray-100 shadow-sm">
+                                                                    <h4 className="text-[10px] font-bold text-gray-400 uppercase mb-3 tracking-widest">Full Feedback</h4>
+                                                                    <p className="text-gray-800 whitespace-pre-wrap leading-relaxed text-sm md:text-base">"{item.feedback}"</p>
+                                                                    <div className="mt-4 pt-4 border-t border-gray-50 flex flex-col sm:flex-row flex-wrap gap-2 text-[10px] text-gray-400 font-medium uppercase tracking-wider">
+                                                                        <span>👤 {item.name || 'Anonymous'}</span>
+                                                                        <span className="hidden sm:inline">•</span>
+                                                                        <span>📧 {item.email || 'No Email'}</span>
+                                                                        <span className="hidden sm:inline">•</span>
+                                                                        <span>📱 {item.contact || 'No Contact'}</span>
+                                                                        <span className="hidden sm:inline">•</span>
+                                                                        <span>📍 {item.location || 'No Location'}</span>
+                                                                        <span className="hidden sm:inline">•</span>
+                                                                        <span>🕒 {new Date(item.createdAt).toLocaleString()}</span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                )}
+                                            </React.Fragment>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <Pagination
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            totalItems={feedbacks.length}
+                            itemsPerPage={itemsPerPage}
+                            onPageChange={handlePageChange}
+                        />
                     </div>
-                </div>
+
+                    {/* Mobile Card View */}
+                    <div className="md:hidden space-y-4">
+                        {paginatedFeedbacks.map((item) => {
+                            let s = 0, c = 0;
+                            if (item.answers) {
+                                Object.values(item.answers).forEach(v => {
+                                    const n = Number(v);
+                                    if (!isNaN(n) && n >= 1 && n <= 5) { s += n; c++; }
+                                });
+                            }
+                            const score = c > 0 ? (s / c).toFixed(1) : 'N/A';
+                            const isExpanded = expandedId === item._id;
+
+                            return (
+                                <div key={item._id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                                    <div
+                                        className="p-4 cursor-pointer active:bg-gray-50 transition-colors"
+                                        onClick={() => setExpandedId(isExpanded ? null : item._id)}
+                                    >
+                                        <div className="flex items-start justify-between mb-3">
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <span className={`text-2xl font-bold ${Number(score) < 3 ? 'text-red-500' : Number(score) < 4 ? 'text-yellow-600' : 'text-green-600'}`}>
+                                                        {score}
+                                                    </span>
+                                                    <span className="text-xs text-gray-400">/5</span>
+                                                </div>
+                                                <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500">
+                                                    <span className="capitalize font-medium">{item.department.replace('_', ' ')}</span>
+                                                    <span>•</span>
+                                                    <span>{new Date(item.createdAt).toLocaleDateString()}</span>
+                                                </div>
+                                            </div>
+                                            <div className={`transform transition-transform duration-200 text-blue-600 ${isExpanded ? 'rotate-180' : ''}`}>
+                                                ▼
+                                            </div>
+                                        </div>
+                                        <p className="text-sm text-gray-700 italic line-clamp-2">
+                                            "{item.feedback}"
+                                        </p>
+                                        <div className="flex items-center gap-2 mt-2">
+                                            <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-1 rounded uppercase font-bold">
+                                                {item.category || 'General'}
+                                            </span>
+                                            <span className="text-[10px] text-gray-400">{item.name || 'Anonymous'}</span>
+                                        </div>
+                                    </div>
+
+                                    {isExpanded && (
+                                        <div className="border-t border-gray-100 p-4 bg-gray-50/50 space-y-4 animate-fade-in">
+                                            <div>
+                                                <h4 className="text-xs font-bold text-gray-500 uppercase mb-3">Survey Responses</h4>
+                                                <div className="space-y-2">
+                                                    {Object.entries(item.answers || {}).map(([key, val], idx) => {
+                                                        if (key === 'suggestion') return null;
+                                                        const numVal = Number(val);
+                                                        const isRating = !isNaN(numVal) && numVal >= 1 && numVal <= 5;
+
+                                                        return (
+                                                            <div key={idx} className="bg-white p-3 rounded-lg border border-gray-100">
+                                                                <p className="text-[10px] font-bold text-gray-400 uppercase mb-1.5">
+                                                                    {key.replace(/_/g, ' ')}
+                                                                </p>
+                                                                {isRating ? (
+                                                                    <div className="flex justify-between items-center">
+                                                                        <div className="flex gap-1.5">
+                                                                            {[1, 2, 3, 4, 5].map(star => (
+                                                                                <div key={star} className={`w-3 h-3 rounded-full ${star <= numVal ? 'bg-pagoda-gold' : 'bg-gray-200'}`}></div>
+                                                                            ))}
+                                                                        </div>
+                                                                        <span className={`text-sm font-bold ${numVal < 3 ? 'text-red-600' : numVal < 4 ? 'text-yellow-600' : 'text-green-600'}`}>
+                                                                            {numVal}/5
+                                                                        </span>
+                                                                    </div>
+                                                                ) : (
+                                                                    <p className="text-sm text-gray-700 italic">"{val}"</p>
+                                                                )}
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                            <div className="bg-white p-4 rounded-lg border border-gray-100">
+                                                <h4 className="text-[10px] font-bold text-gray-400 uppercase mb-2">Full Feedback</h4>
+                                                <p className="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">"{item.feedback}"</p>
+                                                <div className="mt-4 pt-3 border-t border-gray-100 space-y-1 text-[10px] text-gray-400 uppercase">
+                                                    <p>👤 {item.name || 'Anonymous'}</p>
+                                                    <p>📧 {item.email || 'No Email'}</p>
+                                                    <p>📱 {item.contact || 'No Contact'}</p>
+                                                    <p>📍 {item.location || 'No Location'}</p>
+                                                    <p>🕒 {new Date(item.createdAt).toLocaleString()}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+
+                        <div className="mt-4">
+                            <Pagination
+                                currentPage={currentPage}
+                                totalPages={totalPages}
+                                totalItems={feedbacks.length}
+                                itemsPerPage={itemsPerPage}
+                                onPageChange={handlePageChange}
+                            />
+                        </div>
+                    </div>
+                </>
             )}
         </div>
     );

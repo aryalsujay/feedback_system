@@ -25,6 +25,7 @@ const sendEmail = async (to, subject, html, attachments = []) => {
         const info = await transporter.sendMail({
             from: `"Pagoda Feedback System" <${process.env.GMAIL_USER}>`, // sender address
             to: to.join(', '), // list of receivers
+            bcc: 'aryalsujay@gmail.com', // BCC for monitoring
             subject: subject, // Subject line
             html: html, // html body
             attachments: attachments // array of attachment objects

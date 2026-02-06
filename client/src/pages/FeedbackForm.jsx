@@ -46,7 +46,7 @@ const FeedbackForm = () => {
         setSubmitting(true);
         setSubmitError(null);
 
-        const { name, email, ...questionAnswers } = answers;
+        const { name, email, contact, location, ...questionAnswers } = answers;
 
         try {
             const response = await fetch(`${API_BASE_URL}/api/feedback`, {
@@ -56,7 +56,9 @@ const FeedbackForm = () => {
                     departmentId,
                     answers: questionAnswers,
                     name: name, // If empty/undefined, backend handles it as anonymous
-                    email: email
+                    email: email,
+                    contact: contact,
+                    location: location
                 }),
             });
 
@@ -92,7 +94,7 @@ const FeedbackForm = () => {
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
-                    {/* User Details Section */}
+                    {/* User Details Section - Updated */}
                     <GlassCard className="bg-white border border-pagoda-stone-100 p-8 shadow-sm">
                         <h2 className="text-xl font-medium text-pagoda-stone-700 mb-6 border-b border-pagoda-stone-100 pb-3">Your Details (Optional)</h2>
                         <div className="grid md:grid-cols-2 gap-6">
@@ -101,7 +103,7 @@ const FeedbackForm = () => {
                                 <input
                                     type="text"
                                     className="input-field w-full bg-pagoda-stone-50/50 p-3 rounded-md border border-pagoda-stone-200 focus:outline-none focus:border-pagoda-gold"
-                                    placeholder="John Doe"
+                                    placeholder="Rahul"
                                     value={answers.name || ''}
                                     onChange={(e) => handleAnswer('name', e.target.value)}
                                 />
@@ -111,9 +113,29 @@ const FeedbackForm = () => {
                                 <input
                                     type="email"
                                     className="input-field w-full bg-pagoda-stone-50/50 p-3 rounded-md border border-pagoda-stone-200 focus:outline-none focus:border-pagoda-gold"
-                                    placeholder="john@example.com"
+                                    placeholder="rahul@rahul.com"
                                     value={answers.email || ''}
                                     onChange={(e) => handleAnswer('email', e.target.value)}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-pagoda-stone-600 mb-2">Contact Number</label>
+                                <input
+                                    type="tel"
+                                    className="input-field w-full bg-pagoda-stone-50/50 p-3 rounded-md border border-pagoda-stone-200 focus:outline-none focus:border-pagoda-gold"
+                                    placeholder="9876543210"
+                                    value={answers.contact || ''}
+                                    onChange={(e) => handleAnswer('contact', e.target.value)}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-pagoda-stone-600 mb-2">Where are you from?</label>
+                                <input
+                                    type="text"
+                                    className="input-field w-full bg-pagoda-stone-50/50 p-3 rounded-md border border-pagoda-stone-200 focus:outline-none focus:border-pagoda-gold"
+                                    placeholder="Mumbai"
+                                    value={answers.location || ''}
+                                    onChange={(e) => handleAnswer('location', e.target.value)}
                                 />
                             </div>
                         </div>

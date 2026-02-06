@@ -101,11 +101,11 @@
         "text": "How would you rate your overall experience?",
         "type": "number_rating",
         "labels": {
-          "1": "Very Poor",
-          "2": "Poor",
-          "3": "Average",
-          "4": "Good",
-          "5": "Excellent"
+          "1": "Very dissatisfied",
+          "2": "Dissatisfied",
+          "3": "Neutral",
+          "4": "Satisfied",
+          "5": "Very satisfied!"
         }
       },
       {
@@ -113,11 +113,11 @@
         "text": "How was the service at coupon & service counters?",
         "type": "number_rating",
         "labels": {
-          "1": "Very Poor",
-          "2": "Poor",
-          "3": "Average",
-          "4": "Good",
-          "5": "Excellent"
+          "1": "Very poor",
+          "2": "Slow & unhelpful",
+          "3": "Okay",
+          "4": "Good service",
+          "5": "Excellent service!"
         }
       },
       {
@@ -125,11 +125,11 @@
         "text": "How would you rate the speed of service during your visit?",
         "type": "number_rating",
         "labels": {
-          "1": "Very Poor",
-          "2": "Poor",
-          "3": "Average",
-          "4": "Good",
-          "5": "Excellent"
+          "1": "Very slow",
+          "2": "Slow",
+          "3": "Acceptable",
+          "4": "Fast",
+          "5": "Very fast!"
         }
       },
       {
@@ -137,11 +137,11 @@
         "text": "How would you rate the cleanliness of our restaurant?",
         "type": "number_rating",
         "labels": {
-          "1": "Very Poor",
-          "2": "Poor",
-          "3": "Average",
-          "4": "Good",
-          "5": "Excellent"
+          "1": "Very dirty",
+          "2": "Unclean",
+          "3": "Acceptable",
+          "4": "Clean",
+          "5": "Spotlessly clean!"
         }
       },
       {
@@ -149,11 +149,11 @@
         "text": "How was the quality of the food served to you?",
         "type": "number_rating",
         "labels": {
-          "1": "Very Poor",
+          "1": "Very poor",
           "2": "Poor",
-          "3": "Average",
-          "4": "Good",
-          "5": "Excellent"
+          "3": "Adequate",
+          "4": "Good quality",
+          "5": "Excellent quality!"
         }
       },
       {
@@ -168,26 +168,26 @@
     "questions": [
       {
         "id": "overall_experience",
-        "text": "How would you rate your overall experience with us?",
+        "text": "Did you discover something special to take home today?",
         "type": "smiley",
         "labels": {
-          "1": "Very Poor",
-          "2": "Poor",
-          "3": "Average",
-          "4": "Good",
-          "5": "Excellent"
+          "1": "Nothing at all",
+          "2": "Not really",
+          "3": "Found something",
+          "4": "Yes, good finds",
+          "5": "Absolutely loved it!"
         }
       },
       {
         "id": "product_search",
-        "text": "Did you find the product you were looking for, and did it meet your needs?",
+        "text": "How would you rate our product variety and selection?",
         "type": "number_rating",
         "labels": {
-          "1": "Very Poor",
-          "2": "Poor",
-          "3": "Average",
-          "4": "Good",
-          "5": "Excellent"
+          "1": "Very limited",
+          "2": "Limited",
+          "3": "Adequate",
+          "4": "Good variety",
+          "5": "Excellent variety!"
         }
       },
       {
@@ -195,23 +195,23 @@
         "text": "How would you rate the quality and durability of the product?",
         "type": "number_rating",
         "labels": {
-          "1": "Very Poor",
+          "1": "Very poor",
           "2": "Poor",
-          "3": "Average",
-          "4": "Good",
-          "5": "Excellent"
+          "3": "Acceptable",
+          "4": "Good quality",
+          "5": "Excellent quality!"
         }
       },
       {
         "id": "price_reasonableness",
-        "text": "How reasonable were the prices considering the quality offered?",
+        "text": "How would you rate the value for money?",
         "type": "number_rating",
         "labels": {
-          "1": "Very Poor",
-          "2": "Poor",
-          "3": "Average",
-          "4": "Good",
-          "5": "Excellent"
+          "1": "Overpriced",
+          "2": "Expensive",
+          "3": "Fair",
+          "4": "Good value",
+          "5": "Great value!"
         }
       },
       {
@@ -219,23 +219,23 @@
         "text": "How helpful and knowledgeable was the staff in guiding you?",
         "type": "number_rating",
         "labels": {
-          "1": "Very Poor",
-          "2": "Poor",
-          "3": "Average",
-          "4": "Good",
-          "5": "Excellent"
+          "1": "Not helpful",
+          "2": "Barely helpful",
+          "3": "Okay",
+          "4": "Helpful",
+          "5": "Very helpful!"
         }
       },
       {
         "id": "recommendation_likelihood",
-        "text": "How likely are you to recommend our product/store to others?",
+        "text": "How likely are you to recommend our shop to others?",
         "type": "number_rating",
         "labels": {
-          "1": "Very Poor",
-          "2": "Poor",
-          "3": "Average",
-          "4": "Good",
-          "5": "Excellent"
+          "1": "Not at all",
+          "2": "Unlikely",
+          "3": "Maybe",
+          "4": "Likely",
+          "5": "Definitely!"
         }
       },
       {
@@ -250,38 +250,38 @@
     "questions": [
       {
         "id": "overall_experience",
-        "text": "How would you rate your overall experience during your stay?",
+        "text": "How peaceful and comfortable was your stay with us?",
         "type": "smiley",
         "labels": {
-          "1": "Very Poor",
-          "2": "Poor",
-          "3": "Average",
-          "4": "Good",
-          "5": "Excellent"
+          "1": "Not peaceful at all",
+          "2": "Somewhat lacking",
+          "3": "Acceptable",
+          "4": "Peaceful & comfortable",
+          "5": "Extremely peaceful!"
         }
       },
       {
         "id": "room_comfort",
-        "text": "How comfortable and well-maintained was your room?",
+        "text": "How would you rate the room amenities and facilities (AC, hot water, bed, etc.)?",
         "type": "number_rating",
         "labels": {
-          "1": "Very Poor",
+          "1": "Very poor",
           "2": "Poor",
-          "3": "Average",
-          "4": "Good",
-          "5": "Excellent"
+          "3": "Adequate",
+          "4": "Good facilities",
+          "5": "Excellent facilities!"
         }
       },
       {
         "id": "cleanliness",
-        "text": "How would you rate the cleanliness of the room, bed linens, and washrooms?",
+        "text": "How would you rate the cleanliness and hygiene?",
         "type": "number_rating",
         "labels": {
-          "1": "Very Poor",
-          "2": "Poor",
-          "3": "Average",
-          "4": "Good",
-          "5": "Excellent"
+          "1": "Very dirty",
+          "2": "Unclean",
+          "3": "Acceptable",
+          "4": "Clean",
+          "5": "Spotlessly clean!"
         }
       },
       {
@@ -289,35 +289,35 @@
         "text": "How would you rate the quality of the food served?",
         "type": "number_rating",
         "labels": {
-          "1": "Very Poor",
+          "1": "Very poor",
           "2": "Poor",
-          "3": "Average",
-          "4": "Good",
-          "5": "Excellent"
+          "3": "Acceptable",
+          "4": "Good quality",
+          "5": "Excellent quality!"
         }
       },
       {
         "id": "staff_support",
-        "text": "How would you rate the services offered and staff support?",
+        "text": "How responsive and helpful was our staff?",
         "type": "number_rating",
         "labels": {
-          "1": "Very Poor",
-          "2": "Poor",
-          "3": "Average",
-          "4": "Good",
-          "5": "Excellent"
+          "1": "Unhelpful",
+          "2": "Poor service",
+          "3": "Adequate",
+          "4": "Helpful",
+          "5": "Exceptionally helpful!"
         }
       },
       {
         "id": "rates_reasonableness",
-        "text": "How reasonable were the rates considering the facilities and services?",
+        "text": "How would you rate the value for money?",
         "type": "number_rating",
         "labels": {
-          "1": "Very Poor",
-          "2": "Poor",
-          "3": "Average",
-          "4": "Good",
-          "5": "Excellent"
+          "1": "Overpriced",
+          "2": "Expensive",
+          "3": "Fair",
+          "4": "Good value",
+          "5": "Excellent value!"
         }
       },
       {
@@ -325,11 +325,11 @@
         "text": "How likely are you to recommend this place to others?",
         "type": "number_rating",
         "labels": {
-          "1": "Very Poor",
-          "2": "Poor",
-          "3": "Average",
-          "4": "Good",
-          "5": "Excellent"
+          "1": "Not at all",
+          "2": "Unlikely",
+          "3": "Maybe",
+          "4": "Likely",
+          "5": "Definitely!"
         }
       },
       {

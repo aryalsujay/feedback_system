@@ -177,8 +177,8 @@ const generatePDF = (deptName, feedbacks, questions) => {
     });
 };
 
-const generateAndSendReports = async (customStart, customEnd, deptFilter = null) => {
-    console.log('Starting weekly report generation...');
+const generateAndSendReports = async (customStart, customEnd, deptFilter = null, customRecipients = null) => {
+    console.log('Starting report generation...');
 
     const emailsConfig = getConfig('emails.json');
     const questionsConfig = getConfig('questions.json');
@@ -208,7 +208,8 @@ const generateAndSendReports = async (customStart, customEnd, deptFilter = null)
         const departments = deptFilter || Object.keys(emailsConfig);
 
         for (const deptId of departments) {
-            const recipients = emailsConfig[deptId];
+            // Use custom recipients if provided, otherwise use config
+            const recipients = customRecipients || emailsConfig[deptId];
             if (!recipients) continue;
             if (deptId === 'admin') continue;
 
@@ -239,14 +240,14 @@ const generateAndSendReports = async (customStart, customEnd, deptFilter = null)
                     <h2 style="color: #bfa57d; border-bottom: 2px solid #bfa57d; padding-bottom: 10px;">Weekly Feedback Report</h2>
                     <p style="font-size: 16px;">Dear Team,</p>
                     <p>Please find attached the detailed feedback analysis report for <strong>${deptName}</strong>.</p>
-                    
+
                     <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
                         <p style="margin: 5px 0;"><strong>Period:</strong> ${startDate.toDateString()} - ${endDate.toDateString()}</p>
                         <p style="margin: 5px 0;"><strong>Total Submissions:</strong> ${feedbacks.length}</p>
                     </div>
 
                     <p>The attached PDF contains a detailed breakdown of ratings and user suggestions.</p>
-                    
+
                     <br/>
                     <p style="font-size: 14px; color: #777;">
                         Best Regards,<br/>
@@ -259,7 +260,7 @@ const generateAndSendReports = async (customStart, customEnd, deptFilter = null)
                 html += `
                     <div style="background-color: #ffebee; border: 1px solid #ffcdd2; padding: 10px; margin-top: 20px; border-radius: 4px; color: #b71c1c;">
                         <strong>⚠️ PDF Generation Failed</strong><br/>
-                        The detailed PDF report could not be generated due to a system error. 
+                        The detailed PDF report could not be generated due to a system error.
                         Please check server logs. Summary data is provided above.
                     </div>
                 `;
@@ -271,7 +272,7 @@ const generateAndSendReports = async (customStart, customEnd, deptFilter = null)
             console.log(`Report sent for ${deptName} to ${recipients.join(', ')}`);
         }
 
-        console.log('All weekly reports sent successfully.');
+        console.log('All reports sent successfully.');
     } catch (error) {
         console.error('Error generating reports:', error);
     }

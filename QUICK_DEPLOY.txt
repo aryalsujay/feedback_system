@@ -1,0 +1,79 @@
+╔════════════════════════════════════════════════════════╗
+║   QUICK DEPLOYMENT - Copy & Paste These Commands      ║
+╚════════════════════════════════════════════════════════╝
+
+📦 DEPLOY ANY CHANGES (Recommended - One Command!)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+cd /home/feedback/feedback_system && ./deploy.sh
+
+
+🔧 MANUAL STEPS (If needed)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1️⃣  Build Client Only:
+   cd /home/feedback/feedback_system/client && npm run build
+
+2️⃣  Check Service Status:
+   systemctl status feedback-system.service
+
+3️⃣  View Live Logs:
+   journalctl -u feedback-system.service -f
+
+4️⃣  Kill Process on Port 5001:
+   lsof -i :5001
+   kill <PID>
+
+
+🌐 ACCESS URLS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+http://172.12.0.28/feedback/global_pagoda
+http://172.12.0.28/feedback/souvenir_shop
+http://172.12.0.28/feedback/dhamma_alaya
+http://172.12.0.28/feedback/food_court
+http://172.12.0.28/feedback/dpvc
+http://172.12.0.28/admin
+
+
+📧 EMAIL MONITORING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+All emails are BCC'd to: aryalsujay@gmail.com
+Weekly reports: Every Sunday at 09:00 IST
+
+
+⏰ TEST SCHEDULER (Send Test Report Now)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+You can trigger a test report from the Admin panel:
+1. Go to http://172.12.0.28/admin
+2. Login
+3. Go to Settings
+4. Click "Send Test Report" for any department
+
+
+📝 IMPORTANT FILES TO EDIT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Questions:  /home/feedback/feedback_system/config/questions.json
+Emails:     /home/feedback/feedback_system/config/emails.json
+Form:       /home/feedback/feedback_system/client/src/pages/FeedbackForm.jsx
+
+After editing any file, run:  ./deploy.sh
+
+
+🚨 TROUBLESHOOTING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Service not starting?
+  → Check: lsof -i :5001
+  → Kill: kill <PID>
+  → Wait 12 seconds for auto-restart
+
+Changes not visible?
+  → Clear browser cache: Ctrl+Shift+R (Windows) or Cmd+Shift+R (Mac)
+  → Try incognito mode
+  → Make sure you ran ./deploy.sh
+
+Check logs for errors:
+  → journalctl -u feedback-system.service -n 50
+
+
+═══════════════════════════════════════════════════════
+That's it! Just use ./deploy.sh for everything! 🎉
+═══════════════════════════════════════════════════════

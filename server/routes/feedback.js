@@ -5,7 +5,7 @@ const Feedback = require('../models/Feedback');
 // POST /api/feedback
 router.post('/', async (req, res) => {
     try {
-        const { departmentId, answers, name, email } = req.body;
+        const { departmentId, answers, name, email, contact, location } = req.body;
 
         if (!departmentId || !answers) {
             return res.status(400).json({ error: 'Missing departmentId or answers' });
@@ -52,6 +52,8 @@ router.post('/', async (req, res) => {
             answers,
             name: name || 'Anonymous',
             email: email || '',
+            contact: contact || '',
+            location: location || '',
             feedback: feedbackText,
             sentiment: sentiment,
             category: derivedCategory,

@@ -33,6 +33,14 @@ const seedAdmins = async () => {
         department: 'global'
     });
 
+    // Create Trust Admin (admin role without full permissions)
+    users.push({
+        username: 'trust',
+        password: 'trustee557',
+        role: 'admin',
+        department: 'global'
+    });
+
     console.log('🌱 Seeding Admins...');
 
     // Clear existing users to ensure clean slate with new credentials

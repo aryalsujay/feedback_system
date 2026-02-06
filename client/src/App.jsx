@@ -11,7 +11,7 @@ import LoginPage from './pages/admin/LoginPage';
 import AdminLayout from './layouts/AdminLayout';
 import Dashboard from './pages/admin/Dashboard';
 import Analytics from './pages/admin/Analytics';
-import Settings from './pages/admin/Settings';
+import Settings from './pages/admin/SettingsEnhanced';
 
 const SuccessPage = () => (
   <div className="min-h-screen flex flex-col items-center justify-center text-center p-8 relative overflow-hidden">
