@@ -206,73 +206,250 @@ const generateAndSendReports = async (customStart, customEnd, deptFilter = null,
         });
 
         const departments = deptFilter || Object.keys(emailsConfig);
+        const selectedDepts = departments.filter(d => d !== 'admin');
 
-        for (const deptId of departments) {
-            // Use custom recipients if provided, otherwise use config
-            const recipients = customRecipients || emailsConfig[deptId];
-            if (!recipients) continue;
-            if (deptId === 'admin') continue;
+        // CUSTOM REPORT MODE: Consolidate emails for recipients who appear in multiple departments
+        if (customRecipients) {
+            console.log('Custom report mode: Consolidating emails by recipient');
 
-            const feedbacks = groupedFeedback[deptId] || [];
-            console.log(`Processing department: ${deptId} with ${feedbacks.length} feedbacks.`);
+            // Build a map of recipient email -> departments they should receive
+            const recipientDeptMap = new Map();
 
-            const deptName = questionsConfig[deptId]?.name || deptId;
-            const questions = questionsConfig[deptId]?.questions || [];
+            // For custom reports, all recipients get all selected departments
+            customRecipients.forEach(email => {
+                recipientDeptMap.set(email, [...selectedDepts]);
+            });
 
-            // Generate PDF safely
-            let attachments = [];
-            let pdfError = null;
+            // Generate all PDFs first
+            const allPDFs = new Map(); // deptId -> { pdfBuffer, deptName, feedbackCount }
 
-            try {
-                const pdfBuffer = await generatePDF(deptName, feedbacks, questions);
-                attachments.push({
-                    filename: `Feedback_Report_${deptId}_${endDate.toISOString().split('T')[0]}.pdf`,
-                    content: pdfBuffer
-                });
-            } catch (err) {
-                console.error(`PDF Generation failed for ${deptName}:`, err.message);
-                pdfError = err;
+            for (const deptId of selectedDepts) {
+                const feedbacks = groupedFeedback[deptId] || [];
+                console.log(`Generating PDF for department: ${deptId} with ${feedbacks.length} feedbacks.`);
+
+                const deptName = questionsConfig[deptId]?.name || deptId;
+                const questions = questionsConfig[deptId]?.questions || [];
+
+                try {
+                    const pdfBuffer = await generatePDF(deptName, feedbacks, questions);
+                    allPDFs.set(deptId, { pdfBuffer, deptName, feedbackCount: feedbacks.length });
+                } catch (err) {
+                    console.error(`PDF Generation failed for ${deptName}:`, err.message);
+                    allPDFs.set(deptId, { pdfBuffer: null, deptName, feedbackCount: feedbacks.length, error: err.message });
+                }
             }
 
-            // Email Body (Summary)
-            let html = `
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
-                    <h2 style="color: #bfa57d; border-bottom: 2px solid #bfa57d; padding-bottom: 10px;">Weekly Feedback Report</h2>
-                    <p style="font-size: 16px;">Dear Team,</p>
-                    <p>Please find attached the detailed feedback analysis report for <strong>${deptName}</strong>.</p>
+            // Send consolidated emails
+            const uniqueRecipients = Array.from(recipientDeptMap.keys());
 
-                    <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
-                        <p style="margin: 5px 0;"><strong>Period:</strong> ${startDate.toDateString()} - ${endDate.toDateString()}</p>
-                        <p style="margin: 5px 0;"><strong>Total Submissions:</strong> ${feedbacks.length}</p>
-                    </div>
+            for (const recipientEmail of uniqueRecipients) {
+                const recipientDepts = recipientDeptMap.get(recipientEmail);
 
-                    <p>The attached PDF contains a detailed breakdown of ratings and user suggestions.</p>
+                // Build attachments for this recipient
+                const attachments = [];
+                const deptDetails = [];
+                let totalFeedbacks = 0;
+                let hasPdfErrors = false;
 
-                    <br/>
-                    <p style="font-size: 14px; color: #777;">
-                        Best Regards,<br/>
-                        <strong>Global Vipassana Pagoda Feedback System</strong>
-                    </p>
-                </div>
-            `;
+                for (const deptId of recipientDepts) {
+                    const pdfData = allPDFs.get(deptId);
+                    if (!pdfData) continue;
 
-            if (pdfError) {
-                html += `
-                    <div style="background-color: #ffebee; border: 1px solid #ffcdd2; padding: 10px; margin-top: 20px; border-radius: 4px; color: #b71c1c;">
-                        <strong>⚠️ PDF Generation Failed</strong><br/>
-                        The detailed PDF report could not be generated due to a system error.
-                        Please check server logs. Summary data is provided above.
+                    if (pdfData.pdfBuffer) {
+                        attachments.push({
+                            filename: `Feedback_Report_${deptId}_${endDate.toISOString().split('T')[0]}.pdf`,
+                            content: pdfData.pdfBuffer
+                        });
+                    } else {
+                        hasPdfErrors = true;
+                    }
+
+                    deptDetails.push({
+                        name: pdfData.deptName,
+                        count: pdfData.feedbackCount,
+                        error: pdfData.error
+                    });
+                    totalFeedbacks += pdfData.feedbackCount;
+                }
+
+                // Determine subject based on number of departments
+                const subject = recipientDepts.length > 1
+                    ? `Weekly Feedback Report - Global Vipassana Pagoda (${startDate.toLocaleDateString()})`
+                    : `Weekly Feedback Report - ${deptDetails[0].name} (${startDate.toLocaleDateString()})`;
+
+                // Build email body
+                const deptList = deptDetails.map(d => `<li><strong>${d.name}</strong>: ${d.count} submission(s)</li>`).join('');
+
+                let html = `
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+                        <h2 style="color: #bfa57d; border-bottom: 2px solid #bfa57d; padding-bottom: 10px;">Weekly Feedback Report</h2>
+                        <p style="font-size: 16px;">Dear Team,</p>
+                        <p>Please find attached the detailed feedback analysis reports for the following department(s):</p>
+
+                        <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                            <p style="margin: 5px 0;"><strong>Period:</strong> ${startDate.toDateString()} - ${endDate.toDateString()}</p>
+                            <p style="margin: 5px 0;"><strong>Departments Included:</strong></p>
+                            <ul style="margin: 10px 0;">
+                                ${deptList}
+                            </ul>
+                            <p style="margin: 5px 0;"><strong>Total Submissions:</strong> ${totalFeedbacks}</p>
+                        </div>
+
+                        <p>The attached PDF(s) contain detailed breakdowns of ratings and user suggestions.</p>
+
+                        <br/>
+                        <p style="font-size: 14px; color: #777;">
+                            Best Regards,<br/>
+                            <strong>Global Vipassana Pagoda Feedback System</strong>
+                        </p>
                     </div>
                 `;
+
+                if (hasPdfErrors) {
+                    html += `
+                        <div style="background-color: #ffebee; border: 1px solid #ffcdd2; padding: 10px; margin-top: 20px; border-radius: 4px; color: #b71c1c;">
+                            <strong>⚠️ PDF Generation Failed</strong><br/>
+                            Some PDF reports could not be generated due to system errors.
+                            Please check server logs.
+                        </div>
+                    `;
+                }
+
+                // Send consolidated email
+                await sendEmail([recipientEmail], subject, html, attachments);
+                console.log(`Consolidated report sent to ${recipientEmail} with ${attachments.length} PDF(s)`);
             }
 
-            // Send Email with Attachment
-            await sendEmail(recipients, `Weekly Feedback Report - ${deptName} (${startDate.toLocaleDateString()})`, html, attachments);
-
-            console.log(`Report sent for ${deptName} to ${recipients.join(', ')}`);
+            console.log('All consolidated reports sent successfully.');
         }
+        // SCHEDULED REPORT MODE: Consolidate by email for recipients in multiple departments
+        else {
+            console.log('Scheduled report mode: Consolidating emails by recipient');
 
-        console.log('All reports sent successfully.');
+            // Build a map of recipient email -> departments they are configured for
+            const recipientDeptMap = new Map();
+
+            for (const deptId of selectedDepts) {
+                const recipients = emailsConfig[deptId];
+                if (!recipients) continue;
+
+                recipients.forEach(email => {
+                    if (!recipientDeptMap.has(email)) {
+                        recipientDeptMap.set(email, []);
+                    }
+                    recipientDeptMap.get(email).push(deptId);
+                });
+            }
+
+            // Generate all PDFs first
+            const allPDFs = new Map(); // deptId -> { pdfBuffer, deptName, feedbackCount }
+
+            for (const deptId of selectedDepts) {
+                const feedbacks = groupedFeedback[deptId] || [];
+                console.log(`Generating PDF for department: ${deptId} with ${feedbacks.length} feedbacks.`);
+
+                const deptName = questionsConfig[deptId]?.name || deptId;
+                const questions = questionsConfig[deptId]?.questions || [];
+
+                try {
+                    const pdfBuffer = await generatePDF(deptName, feedbacks, questions);
+                    allPDFs.set(deptId, { pdfBuffer, deptName, feedbackCount: feedbacks.length });
+                } catch (err) {
+                    console.error(`PDF Generation failed for ${deptName}:`, err.message);
+                    allPDFs.set(deptId, { pdfBuffer: null, deptName, feedbackCount: feedbacks.length, error: err.message });
+                }
+            }
+
+            // Send consolidated emails
+            const uniqueRecipients = Array.from(recipientDeptMap.keys());
+
+            for (const recipientEmail of uniqueRecipients) {
+                const recipientDepts = recipientDeptMap.get(recipientEmail);
+
+                // Build attachments for this recipient
+                const attachments = [];
+                const deptDetails = [];
+                let totalFeedbacks = 0;
+                let hasPdfErrors = false;
+
+                for (const deptId of recipientDepts) {
+                    const pdfData = allPDFs.get(deptId);
+                    if (!pdfData) continue;
+
+                    if (pdfData.pdfBuffer) {
+                        attachments.push({
+                            filename: `Feedback_Report_${deptId}_${endDate.toISOString().split('T')[0]}.pdf`,
+                            content: pdfData.pdfBuffer
+                        });
+                    } else {
+                        hasPdfErrors = true;
+                    }
+
+                    deptDetails.push({
+                        name: pdfData.deptName,
+                        count: pdfData.feedbackCount,
+                        error: pdfData.error
+                    });
+                    totalFeedbacks += pdfData.feedbackCount;
+                }
+
+                // Determine subject based on number of departments
+                const subject = recipientDepts.length > 1
+                    ? `Weekly Feedback Report - Global Vipassana Pagoda (${startDate.toLocaleDateString()})`
+                    : `Weekly Feedback Report - ${deptDetails[0].name} (${startDate.toLocaleDateString()})`;
+
+                // Build email body
+                const deptList = deptDetails.map(d => `<li><strong>${d.name}</strong>: ${d.count} submission(s)</li>`).join('');
+
+                let html = `
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+                        <h2 style="color: #bfa57d; border-bottom: 2px solid #bfa57d; padding-bottom: 10px;">Weekly Feedback Report</h2>
+                        <p style="font-size: 16px;">Dear Team,</p>
+                        <p>Please find attached the detailed feedback analysis report${recipientDepts.length > 1 ? 's' : ''} for ${recipientDepts.length > 1 ? 'the following department(s)' : '<strong>' + deptDetails[0].name + '</strong>'}:</p>
+
+                        ${recipientDepts.length > 1 ? `
+                        <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                            <p style="margin: 5px 0;"><strong>Period:</strong> ${startDate.toDateString()} - ${endDate.toDateString()}</p>
+                            <p style="margin: 5px 0;"><strong>Departments Included:</strong></p>
+                            <ul style="margin: 10px 0;">
+                                ${deptList}
+                            </ul>
+                            <p style="margin: 5px 0;"><strong>Total Submissions:</strong> ${totalFeedbacks}</p>
+                        </div>
+                        ` : `
+                        <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                            <p style="margin: 5px 0;"><strong>Period:</strong> ${startDate.toDateString()} - ${endDate.toDateString()}</p>
+                            <p style="margin: 5px 0;"><strong>Total Submissions:</strong> ${totalFeedbacks}</p>
+                        </div>
+                        `}
+
+                        <p>The attached PDF${recipientDepts.length > 1 ? 's contain' : ' contains a'} detailed breakdown${recipientDepts.length > 1 ? 's' : ''} of ratings and user suggestions.</p>
+
+                        <br/>
+                        <p style="font-size: 14px; color: #777;">
+                            Best Regards,<br/>
+                            <strong>Global Vipassana Pagoda Feedback System</strong>
+                        </p>
+                    </div>
+                `;
+
+                if (hasPdfErrors) {
+                    html += `
+                        <div style="background-color: #ffebee; border: 1px solid #ffcdd2; padding: 10px; margin-top: 20px; border-radius: 4px; color: #b71c1c;">
+                            <strong>⚠️ PDF Generation Failed</strong><br/>
+                            ${recipientDepts.length > 1 ? 'Some PDF reports' : 'The PDF report'} could not be generated due to ${recipientDepts.length > 1 ? 'system errors' : 'a system error'}.
+                            Please check server logs.
+                        </div>
+                    `;
+                }
+
+                // Send consolidated email
+                await sendEmail([recipientEmail], subject, html, attachments);
+                console.log(`Consolidated report sent to ${recipientEmail} with ${attachments.length} PDF(s) for departments: ${recipientDepts.join(', ')}`);
+            }
+
+            console.log('All consolidated reports sent successfully.');
+        }
     } catch (error) {
         console.error('Error generating reports:', error);
     }
