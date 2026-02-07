@@ -1,9 +1,26 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Poppins:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 
 @theme {
-  /* Colors */
-  --color-pagoda-gold: #C5A059;
-  --color-pagoda-goldLight: #E5D4B3;
+  /* Colors - Enhanced Dhamma Palette */
+  --color-pagoda-gold: #D4AF37;
+  --color-pagoda-goldLight: #F4E4C1;
+  --color-pagoda-goldDark: #B8860B;
+  --color-pagoda-saffron: #FF9933;
+  --color-pagoda-saffron-light: #FFB366;
+  --color-pagoda-saffron-dark: #E67300;
+  --color-pagoda-maroon: #8B0000;
+  --color-pagoda-maroon-light: #B22222;
+  --color-pagoda-maroon-dark: #660000;
+  --color-pagoda-brown: #8B4513;
+  --color-pagoda-brown-light: #A0522D;
+  --color-pagoda-brown-dark: #654321;
+  --color-pagoda-red: #DC143C;
+  --color-pagoda-red-light: #FF6347;
+  --color-pagoda-lotus: #E8B4D4;
+  --color-pagoda-lotus-deep: #D87FA8;
+  --color-pagoda-peace: #4A90A4;
+  --color-pagoda-peace-light: #7BB8CC;
   --color-pagoda-stone-900: #44403C;
   --color-pagoda-stone-800: #57534E;
   --color-pagoda-stone-700: #57534E;
@@ -14,13 +31,14 @@
   --color-pagoda-stone-200: #E7E5E4;
   --color-pagoda-stone-100: #F5F5F4;
   --color-pagoda-stone-50: #FAFAF9;
-  --color-pagoda-sand: #F5F0E6;
+  --color-pagoda-sand: #F5E6D3;
   --color-pagoda-error: #9A3412;
   --color-pagoda-success: #4D7C0F;
 
   /* Fonts */
-  --font-serif: 'Merriweather', serif;
-  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-serif: 'Merriweather', 'Georgia', serif;
+  --font-sans: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  --font-display: 'Playfair Display', 'Georgia', serif;
 
   /* Backgrounds */
   --image-subtle-pattern: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23C5A059' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
@@ -29,9 +47,11 @@
 /* Global Styles */
 @layer base {
   body {
-    @apply bg-pagoda-stone-50 text-pagoda-stone-900 font-sans antialiased;
+    @apply bg-gradient-to-br from-pagoda-sand via-pagoda-goldLight/40 to-pagoda-stone-50 text-pagoda-stone-900 font-sans antialiased;
     background-image: var(--image-subtle-pattern);
     background-attachment: fixed;
+    min-height: 100vh;
+    font-family: 'Poppins', 'Inter', sans-serif;
   }
 
   h1,
@@ -40,8 +60,31 @@
   h4,
   h5,
   h6 {
-    @apply font-serif text-pagoda-stone-900;
+    @apply text-pagoda-stone-900;
+    font-family: 'Playfair Display', 'Merriweather', serif;
+    font-weight: 700;
   }
+}
+
+/* Animations */
+@keyframes shimmer {
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(197, 160, 89, 0.4); }
+  50% { box-shadow: 0 0 30px rgba(197, 160, 89, 0.6); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
 }
 
 /* Components */

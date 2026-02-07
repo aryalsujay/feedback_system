@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { API_BASE_URL } from '../config';
 import { useParams, useNavigate } from 'react-router-dom';
 import useQuestions from '../hooks/useQuestions';
@@ -7,6 +7,7 @@ import RatingSmiley from '../components/RatingSmiley';
 import StarRating from '../components/StarRating';
 import NumberRating from '../components/NumberRating';
 import OptionSelect from '../components/OptionSelect';
+import ProgressIndicator from '../components/ProgressIndicator';
 import Button from '../components/ui/Button';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Send, Loader2, AlertCircle } from 'lucide-react';
@@ -20,18 +21,26 @@ const FeedbackForm = () => {
     const [submitting, setSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState(null);
 
-    if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin text-pagoda-gold" size={48} /></div>;
-    if (error || !questions) return <div className="min-h-screen flex items-center justify-center text-pagoda-error">Failed to load configuration.</div>;
-
-    const department = questions[departmentId];
-
-    if (!department) {
-        return <div className="p-10 text-center text-pagoda-stone-500">Department not found</div>;
-    }
+    const department = questions?.[departmentId];
 
     const handleAnswer = (qId, value) => {
         setAnswers(prev => ({ ...prev, [qId]: value }));
     };
+
+    // Calculate progress - count answered non-text questions
+    const progress = useMemo(() => {
+        if (!department) return { current: 0, total: 0 };
+
+        const nonTextQuestions = department.questions.filter(q => q.type !== 'text');
+        const answeredCount = nonTextQuestions.filter(q =>
+            answers[q.id] !== undefined && answers[q.id] !== null
+        ).length;
+
+        return {
+            current: answeredCount,
+            total: nonTextQuestions.length
+        };
+    }, [answers, department]);
 
     // Validation: Check if all non-text questions have an answer
     const isFormValid = department && department.questions.every(q => {
@@ -40,6 +49,13 @@ const FeedbackForm = () => {
         // Other types (smiley, rating_5, number_rating, option_select) must have a value
         return answers[q.id] !== undefined && answers[q.id] !== null;
     });
+
+    if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin text-pagoda-gold" size={48} /></div>;
+    if (error || !questions) return <div className="min-h-screen flex items-center justify-center text-pagoda-error">Failed to load configuration.</div>;
+
+    if (!department) {
+        return <div className="p-10 text-center text-pagoda-stone-500">Department not found</div>;
+    }
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -73,9 +89,18 @@ const FeedbackForm = () => {
     };
 
     return (
-        <div className="min-h-screen py-10 px-4 md:px-8 flex flex-col items-center relative bg-pagoda-stone-50">
+        <>
+            {/* Progress Indicator - Sticky at top */}
+            {progress.total > 0 && (
+                <ProgressIndicator current={progress.current} total={progress.total} />
+            )}
 
-            <div className="w-full max-w-3xl z-10">
+            <div className="min-h-screen flex flex-col relative bg-gradient-to-br from-pagoda-stone-50 via-pagoda-sand/30 to-pagoda-goldLight/10 overflow-hidden">
+                {/* Decorative Elements */}
+                <div className="absolute top-20 right-0 w-72 h-72 bg-pagoda-lotus/10 rounded-full blur-3xl"></div>
+                <div className="absolute bottom-20 left-0 w-72 h-72 bg-pagoda-peace/10 rounded-full blur-3xl"></div>
+
+                <div className="w-full max-w-3xl z-10 mx-auto py-10 px-4 md:px-8">
                 <div className="mb-8">
                     <Button
                         variant="ghost"
@@ -87,52 +112,67 @@ const FeedbackForm = () => {
                 </div>
 
 
-                <div className="text-center mb-12">
-                    <h1 className="text-3xl md:text-4xl font-serif text-pagoda-stone-900 mb-3">{department.name}</h1>
-                    <div className="h-0.5 w-16 bg-pagoda-gold mx-auto mb-4 opacity-50"></div>
-                    <p className="text-pagoda-stone-500 font-light">We value your thoughts to improve our service.</p>
-                </div>
+                <motion.div
+                    className="text-center mb-12"
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6 }}
+                >
+                    <h1 className="text-3xl md:text-4xl font-serif bg-gradient-to-r from-pagoda-maroon via-pagoda-gold to-pagoda-saffron bg-clip-text text-transparent mb-3">
+                        {department.name}
+                    </h1>
+                    <motion.div
+                        className="h-1 w-16 bg-gradient-to-r from-pagoda-saffron via-pagoda-gold to-pagoda-maroon mx-auto mb-4 rounded-full"
+                        initial={{ width: 0 }}
+                        animate={{ width: 64 }}
+                        transition={{ duration: 0.8, delay: 0.2 }}
+                    ></motion.div>
+                    <p className="text-pagoda-stone-600 font-light">We value your thoughts to improve our service.</p>
+                </motion.div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     {/* User Details Section - Updated */}
-                    <GlassCard className="bg-white border border-pagoda-stone-100 p-8 shadow-sm">
-                        <h2 className="text-xl font-medium text-pagoda-stone-700 mb-6 border-b border-pagoda-stone-100 pb-3">Your Details (Optional)</h2>
+                    <GlassCard className="bg-gradient-to-br from-white via-pagoda-goldLight/10 to-white backdrop-blur-sm border-3 border-pagoda-gold/40 p-10 shadow-xl hover:shadow-2xl hover:border-pagoda-saffron/50 transition-all duration-300">
+                        <h2 className="text-2xl font-bold text-transparent bg-gradient-to-r from-pagoda-maroon via-pagoda-brown to-pagoda-gold bg-clip-text mb-8 pb-4 flex items-center gap-3 border-b-3 border-gradient-to-r from-pagoda-saffron via-pagoda-gold to-pagoda-brown">
+                            <span className="w-2 h-8 bg-gradient-to-b from-pagoda-saffron via-pagoda-gold to-pagoda-maroon rounded-full shadow-lg"></span>
+                            Your Details (Optional)
+                        </h2>
                         <div className="grid md:grid-cols-2 gap-6">
                             <div>
-                                <label className="block text-sm font-medium text-pagoda-stone-600 mb-2">Name</label>
+                                <label className="block text-sm font-medium text-pagoda-stone-700 mb-2">Name</label>
                                 <input
                                     type="text"
-                                    className="input-field w-full bg-pagoda-stone-50/50 p-3 rounded-md border border-pagoda-stone-200 focus:outline-none focus:border-pagoda-gold"
+                                    className="input-field w-full bg-pagoda-stone-50/50 p-3 rounded-lg border-2 border-pagoda-stone-200 focus:outline-none focus:border-pagoda-saffron focus:ring-2 focus:ring-pagoda-saffron/20 transition-all duration-300"
                                     placeholder="Rahul"
                                     value={answers.name || ''}
                                     onChange={(e) => handleAnswer('name', e.target.value)}
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-pagoda-stone-600 mb-2">Email</label>
+                                <label className="block text-sm font-medium text-pagoda-stone-700 mb-2">Email</label>
                                 <input
                                     type="email"
-                                    className="input-field w-full bg-pagoda-stone-50/50 p-3 rounded-md border border-pagoda-stone-200 focus:outline-none focus:border-pagoda-gold"
+                                    className="input-field w-full bg-pagoda-stone-50/50 p-3 rounded-lg border-2 border-pagoda-stone-200 focus:outline-none focus:border-pagoda-saffron focus:ring-2 focus:ring-pagoda-saffron/20 transition-all duration-300"
                                     placeholder="rahul@rahul.com"
                                     value={answers.email || ''}
                                     onChange={(e) => handleAnswer('email', e.target.value)}
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-pagoda-stone-600 mb-2">Contact Number</label>
+                                <label className="block text-sm font-medium text-pagoda-stone-700 mb-2">Contact Number</label>
                                 <input
                                     type="tel"
-                                    className="input-field w-full bg-pagoda-stone-50/50 p-3 rounded-md border border-pagoda-stone-200 focus:outline-none focus:border-pagoda-gold"
+                                    className="input-field w-full bg-pagoda-stone-50/50 p-3 rounded-lg border-2 border-pagoda-stone-200 focus:outline-none focus:border-pagoda-saffron focus:ring-2 focus:ring-pagoda-saffron/20 transition-all duration-300"
                                     placeholder="9876543210"
                                     value={answers.contact || ''}
                                     onChange={(e) => handleAnswer('contact', e.target.value)}
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-pagoda-stone-600 mb-2">Where are you from?</label>
+                                <label className="block text-sm font-medium text-pagoda-stone-700 mb-2">Where are you from?</label>
                                 <input
                                     type="text"
-                                    className="input-field w-full bg-pagoda-stone-50/50 p-3 rounded-md border border-pagoda-stone-200 focus:outline-none focus:border-pagoda-gold"
+                                    className="input-field w-full bg-pagoda-stone-50/50 p-3 rounded-lg border-2 border-pagoda-stone-200 focus:outline-none focus:border-pagoda-saffron focus:ring-2 focus:ring-pagoda-saffron/20 transition-all duration-300"
                                     placeholder="Mumbai"
                                     value={answers.location || ''}
                                     onChange={(e) => handleAnswer('location', e.target.value)}
@@ -142,14 +182,19 @@ const FeedbackForm = () => {
                     </GlassCard>
 
                     {department.questions.map((q, idx) => (
-                        <GlassCard
+                        <motion.div
                             key={q.id}
-                            className="bg-white border border-pagoda-stone-100 p-8 shadow-sm"
-                            delay={idx * 0.1}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: idx * 0.08, duration: 0.5 }}
                         >
-                            <label className="block text-lg font-medium text-pagoda-stone-700 mb-6 text-center">
-                                {q.text} {q.type !== 'text' && <span className="text-red-400">*</span>}
-                            </label>
+                            <GlassCard
+                                className="bg-white/90 backdrop-blur-sm border-2 border-pagoda-stone-200 p-8 shadow-md hover:shadow-xl hover:border-pagoda-lotus/40 transition-all duration-300"
+                                delay={0}
+                            >
+                                <label className="block text-xl font-bold text-transparent bg-gradient-to-r from-pagoda-maroon via-pagoda-brown to-pagoda-gold bg-clip-text mb-8 text-center leading-relaxed">
+                                    {q.text} {q.type !== 'text' && <span className="text-pagoda-saffron text-2xl">*</span>}
+                                </label>
 
                             {q.type === 'smiley' && (
                                 <RatingSmiley
@@ -187,13 +232,14 @@ const FeedbackForm = () => {
                             {q.type === 'text' && (
                                 <textarea
                                     rows={4}
-                                    className="input-field resize-none bg-pagoda-stone-50/50"
+                                    className="input-field resize-none bg-pagoda-stone-50/50 border-2 border-pagoda-stone-200 rounded-lg focus:border-pagoda-saffron focus:ring-2 focus:ring-pagoda-saffron/20 transition-all duration-300"
                                     placeholder="Kindly share your thoughts..."
                                     value={answers[q.id] || ''}
                                     onChange={(e) => handleAnswer(q.id, e.target.value)}
                                 />
                             )}
                         </GlassCard>
+                        </motion.div>
                     ))}
 
                     {submitError && (
@@ -202,20 +248,35 @@ const FeedbackForm = () => {
                         </div>
                     )}
 
-                    <div className="pt-8 pb-12 flex justify-center">
-                        <Button
-                            type="submit"
-                            disabled={submitting || !isFormValid}
-                            className={`px-12 py-3 text-lg shadow-pagoda-gold/20 ${!isFormValid ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        >
-                            {submitting ? 'Submitting...' : (
-                                <>Submit Feedback <Send size={18} /></>
-                            )}
-                        </Button>
-                    </div>
+                    <motion.div
+                        className="pt-8 pb-12 flex justify-center"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.5 }}
+                    >
+                        <motion.div whileHover={{ scale: isFormValid ? 1.05 : 1 }} whileTap={{ scale: isFormValid ? 0.95 : 1 }}>
+                            <Button
+                                type="submit"
+                                disabled={submitting || !isFormValid}
+                                className={`px-14 py-4 text-lg shadow-xl shadow-pagoda-saffron/30 bg-gradient-to-r from-pagoda-saffron to-pagoda-gold hover:from-pagoda-gold hover:to-pagoda-saffron transition-all duration-300 ${!isFormValid ? 'opacity-50 cursor-not-allowed grayscale' : 'hover:shadow-2xl hover:shadow-pagoda-gold/40'}`}
+                            >
+                                {submitting ? (
+                                    <span className="flex items-center gap-2">
+                                        <Loader2 className="animate-spin" size={18} />
+                                        Submitting...
+                                    </span>
+                                ) : (
+                                    <span className="flex items-center gap-2">
+                                        Submit Feedback <Send size={18} />
+                                    </span>
+                                )}
+                            </Button>
+                        </motion.div>
+                    </motion.div>
                 </form>
+                </div>
             </div>
-        </div>
+        </>
     );
 };
 
