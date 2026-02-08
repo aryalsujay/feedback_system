@@ -5,6 +5,7 @@ import {
     BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
     PieChart, Pie, Cell
 } from 'recharts';
+import { getDepartmentName } from '../../utils/departmentNames';
 
 import { API_BASE_URL } from '../../config';
 
@@ -82,7 +83,7 @@ const Analytics = () => {
                         >
                             <option value="global">All Departments</option>
                             {departments.filter(d => d !== 'global').map(d => (
-                                <option key={d} value={d} className="capitalize">{d.replace('_', ' ')}</option>
+                                <option key={d} value={d}>{getDepartmentName(d)}</option>
                             ))}
                         </select>
                     </div>

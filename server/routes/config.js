@@ -6,7 +6,9 @@ const path = require('path');
 // GET /api/config/questions
 router.get('/questions', (req, res) => {
     try {
-        const configPath = path.join(__dirname, '../../config/questions.json');
+        const lang = req.query.lang || 'en';
+        const fileName = lang === 'hi' ? 'questions_hi.json' : 'questions.json';
+        const configPath = path.join(__dirname, '../../config', fileName);
         const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
         res.json(config);
     } catch (error) {

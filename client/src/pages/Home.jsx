@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import GlassCard from '../components/GlassCard';
 import useQuestions from '../hooks/useQuestions';
+import Button from '../components/ui/Button';
 import { motion } from 'framer-motion';
-import { Building2, Utensils, ShoppingBag, Home as HomeIcon, School, Loader2, Sparkles } from 'lucide-react';
+import { Building2, Utensils, ShoppingBag, Home as HomeIcon, School, Loader2, Sparkles, LogOut } from 'lucide-react';
 
 const iconMap = {
     global_pagoda: Building2,
@@ -16,6 +17,22 @@ const iconMap = {
 const Home = () => {
     const navigate = useNavigate();
     const { questions, loading, error } = useQuestions();
+    const [adminSession, setAdminSession] = useState(null);
+
+    useEffect(() => {
+        const session = localStorage.getItem('departmentSession');
+        if (session) {
+            const parsedSession = JSON.parse(session);
+            if (parsedSession.type === 'admin') {
+                setAdminSession(parsedSession);
+            }
+        }
+    }, []);
+
+    const handleLogout = () => {
+        localStorage.removeItem('departmentSession');
+        navigate('/');
+    };
 
     if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin text-pagoda-gold" size={48} /></div>;
     if (error) return <div className="min-h-screen flex items-center justify-center text-pagoda-error">Unable to load services. Please try again later.</div>;
@@ -27,6 +44,20 @@ const Home = () => {
             {/* Decorative Background Elements */}
             <div className="absolute top-0 left-0 w-96 h-96 bg-pagoda-saffron/5 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
             <div className="absolute bottom-0 right-0 w-96 h-96 bg-pagoda-lotus/10 rounded-full blur-3xl translate-x-1/2 translate-y-1/2"></div>
+
+            {/* Logout Button for Admin */}
+            {adminSession && (
+                <div className="absolute top-6 right-6 z-20">
+                    <Button
+                        onClick={handleLogout}
+                        variant="outline"
+                        className="border-2 border-pagoda-saffron text-pagoda-maroon hover:bg-gradient-to-r hover:from-pagoda-saffron hover:to-pagoda-gold hover:text-white transition-all duration-300 flex items-center gap-2"
+                    >
+                        <LogOut size={18} />
+                        Logout
+                    </Button>
+                </div>
+            )}
 
             <motion.div
                 initial={{ opacity: 0, y: -20 }}

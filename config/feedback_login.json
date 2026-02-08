@@ -1,0 +1,33 @@
+{
+  "admin": {
+    "username": "admin",
+    "password": "admin977",
+    "name": "Admin",
+    "isAdmin": true
+  },
+  "global_pagoda": {
+    "username": "gvp",
+    "password": "gvps@996",
+    "name": "Global Vipassana Pagoda"
+  },
+  "food_court": {
+    "username": "fc",
+    "password": "fcs@997",
+    "name": "Food Court"
+  },
+  "souvenir_shop": {
+    "username": "svct",
+    "password": "svct@998",
+    "name": "Souvenir Shop"
+  },
+  "dhamma_alaya": {
+    "username": "dlaya",
+    "password": "dlaya@999",
+    "name": "Dhammalaya"
+  },
+  "dpvc": {
+    "username": "dpvc",
+    "password": "dpvc@995",
+    "name": "Dhamma Pattana Vipassana Centre"
+  }
+}

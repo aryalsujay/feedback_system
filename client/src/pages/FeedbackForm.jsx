@@ -1,7 +1,8 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { API_BASE_URL } from '../config';
 import { useParams, useNavigate } from 'react-router-dom';
 import useQuestions from '../hooks/useQuestions';
+import { translations } from '../translations';
 import GlassCard from '../components/GlassCard';
 import RatingSmiley from '../components/RatingSmiley';
 import StarRating from '../components/StarRating';
@@ -10,18 +11,49 @@ import OptionSelect from '../components/OptionSelect';
 import ProgressIndicator from '../components/ProgressIndicator';
 import Button from '../components/ui/Button';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Send, Loader2, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Send, Loader2, AlertCircle, LogOut, Languages } from 'lucide-react';
 
 const FeedbackForm = () => {
     const { departmentId } = useParams();
     const navigate = useNavigate();
-    const { questions, loading, error } = useQuestions();
+    const [language, setLanguage] = useState(() => {
+        return localStorage.getItem('feedbackLanguage') || 'en';
+    });
+    const { questions, loading, error } = useQuestions(language);
 
     const [answers, setAnswers] = useState({});
     const [submitting, setSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState(null);
+    const [departmentSession, setDepartmentSession] = useState(null);
 
     const department = questions?.[departmentId];
+    const t = translations[language];
+
+    const handleLanguageChange = (newLang) => {
+        setLanguage(newLang);
+        localStorage.setItem('feedbackLanguage', newLang);
+    };
+
+    // Check for department session on mount
+    useEffect(() => {
+        const session = localStorage.getItem('departmentSession');
+        if (session) {
+            const parsedSession = JSON.parse(session);
+            setDepartmentSession(parsedSession);
+
+            // Verify department user is accessing their own department
+            // Admin can access any department
+            if (parsedSession.type === 'department' && parsedSession.departmentId !== departmentId) {
+                // Redirect department user to their own department
+                navigate(`/feedback/${parsedSession.departmentId}`);
+            }
+        }
+    }, [departmentId, navigate]);
+
+    const handleLogout = () => {
+        localStorage.removeItem('departmentSession');
+        navigate('/');
+    };
 
     const handleAnswer = (qId, value) => {
         setAnswers(prev => ({ ...prev, [qId]: value }));
@@ -101,14 +133,51 @@ const FeedbackForm = () => {
                 <div className="absolute bottom-20 left-0 w-72 h-72 bg-pagoda-peace/10 rounded-full blur-3xl"></div>
 
                 <div className="w-full max-w-3xl z-10 mx-auto py-10 px-4 md:px-8">
-                <div className="mb-8">
-                    <Button
-                        variant="ghost"
-                        onClick={() => navigate('/')}
-                        className="pl-0 gap-2 text-pagoda-stone-500 hover:text-pagoda-gold hover:bg-transparent"
-                    >
-                        <ArrowLeft size={18} /> Back to Departments
-                    </Button>
+                <div className="mb-8 flex justify-between items-center">
+                    {departmentSession ? (
+                        departmentSession.type === 'admin' ? (
+                            <Button
+                                variant="ghost"
+                                onClick={() => navigate('/admin/home')}
+                                className="pl-0 gap-2 text-pagoda-stone-500 hover:text-pagoda-gold hover:bg-transparent"
+                            >
+                                <ArrowLeft size={18} /> {t.backToDepartments}
+                            </Button>
+                        ) : (
+                            <div className="flex items-center gap-4">
+                                <span className="text-sm text-pagoda-stone-600">
+                                    {t.welcome}, <span className="font-semibold text-pagoda-maroon">{departmentSession.departmentName}</span>
+                                </span>
+                            </div>
+                        )
+                    ) : (
+                        <div></div>
+                    )}
+
+                    {departmentSession && (
+                        <Button
+                            variant="ghost"
+                            onClick={handleLogout}
+                            className="gap-2 text-pagoda-stone-500 hover:text-red-600 hover:bg-transparent"
+                        >
+                            <LogOut size={18} /> {t.logout}
+                        </Button>
+                    )}
+                </div>
+
+                {/* Language Selector */}
+                <div className="mb-6 flex justify-end">
+                    <div className="flex items-center gap-3 bg-white/80 backdrop-blur-sm border-2 border-pagoda-gold/30 rounded-lg px-4 py-2 shadow-md">
+                        <Languages className="text-pagoda-gold" size={20} />
+                        <select
+                            value={language}
+                            onChange={(e) => handleLanguageChange(e.target.value)}
+                            className="bg-transparent border-none outline-none text-pagoda-maroon font-medium cursor-pointer"
+                        >
+                            <option value="en">English</option>
+                            <option value="hi">हिन्दी (Hindi)</option>
+                        </select>
+                    </div>
                 </div>
 
 
@@ -127,7 +196,7 @@ const FeedbackForm = () => {
                         animate={{ width: 64 }}
                         transition={{ duration: 0.8, delay: 0.2 }}
                     ></motion.div>
-                    <p className="text-pagoda-stone-600 font-light">We value your thoughts to improve our service.</p>
+                    <p className="text-pagoda-stone-600 font-light">{t.valueFeedback}</p>
                 </motion.div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
@@ -135,45 +204,45 @@ const FeedbackForm = () => {
                     <GlassCard className="bg-gradient-to-br from-white via-pagoda-goldLight/10 to-white backdrop-blur-sm border-3 border-pagoda-gold/40 p-10 shadow-xl hover:shadow-2xl hover:border-pagoda-saffron/50 transition-all duration-300">
                         <h2 className="text-2xl font-bold text-transparent bg-gradient-to-r from-pagoda-maroon via-pagoda-brown to-pagoda-gold bg-clip-text mb-8 pb-4 flex items-center gap-3 border-b-3 border-gradient-to-r from-pagoda-saffron via-pagoda-gold to-pagoda-brown">
                             <span className="w-2 h-8 bg-gradient-to-b from-pagoda-saffron via-pagoda-gold to-pagoda-maroon rounded-full shadow-lg"></span>
-                            Your Details (Optional)
+                            {t.yourDetails}
                         </h2>
                         <div className="grid md:grid-cols-2 gap-6">
                             <div>
-                                <label className="block text-sm font-medium text-pagoda-stone-700 mb-2">Name</label>
+                                <label className="block text-sm font-medium text-pagoda-stone-700 mb-2">{t.name}</label>
                                 <input
                                     type="text"
                                     className="input-field w-full bg-pagoda-stone-50/50 p-3 rounded-lg border-2 border-pagoda-stone-200 focus:outline-none focus:border-pagoda-saffron focus:ring-2 focus:ring-pagoda-saffron/20 transition-all duration-300"
-                                    placeholder="Rahul"
+                                    placeholder={t.namePlaceholder}
                                     value={answers.name || ''}
                                     onChange={(e) => handleAnswer('name', e.target.value)}
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-pagoda-stone-700 mb-2">Email</label>
+                                <label className="block text-sm font-medium text-pagoda-stone-700 mb-2">{t.email}</label>
                                 <input
                                     type="email"
                                     className="input-field w-full bg-pagoda-stone-50/50 p-3 rounded-lg border-2 border-pagoda-stone-200 focus:outline-none focus:border-pagoda-saffron focus:ring-2 focus:ring-pagoda-saffron/20 transition-all duration-300"
-                                    placeholder="rahul@rahul.com"
+                                    placeholder={t.emailPlaceholder}
                                     value={answers.email || ''}
                                     onChange={(e) => handleAnswer('email', e.target.value)}
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-pagoda-stone-700 mb-2">Contact Number</label>
+                                <label className="block text-sm font-medium text-pagoda-stone-700 mb-2">{t.contact}</label>
                                 <input
                                     type="tel"
                                     className="input-field w-full bg-pagoda-stone-50/50 p-3 rounded-lg border-2 border-pagoda-stone-200 focus:outline-none focus:border-pagoda-saffron focus:ring-2 focus:ring-pagoda-saffron/20 transition-all duration-300"
-                                    placeholder="9876543210"
+                                    placeholder={t.contactPlaceholder}
                                     value={answers.contact || ''}
                                     onChange={(e) => handleAnswer('contact', e.target.value)}
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-pagoda-stone-700 mb-2">Where are you from?</label>
+                                <label className="block text-sm font-medium text-pagoda-stone-700 mb-2">{t.location}</label>
                                 <input
                                     type="text"
                                     className="input-field w-full bg-pagoda-stone-50/50 p-3 rounded-lg border-2 border-pagoda-stone-200 focus:outline-none focus:border-pagoda-saffron focus:ring-2 focus:ring-pagoda-saffron/20 transition-all duration-300"
-                                    placeholder="Mumbai"
+                                    placeholder={t.locationPlaceholder}
                                     value={answers.location || ''}
                                     onChange={(e) => handleAnswer('location', e.target.value)}
                                 />
@@ -263,11 +332,11 @@ const FeedbackForm = () => {
                                 {submitting ? (
                                     <span className="flex items-center gap-2">
                                         <Loader2 className="animate-spin" size={18} />
-                                        Submitting...
+                                        {t.submitting}
                                     </span>
                                 ) : (
                                     <span className="flex items-center gap-2">
-                                        Submit Feedback <Send size={18} />
+                                        {t.submit} <Send size={18} />
                                     </span>
                                 )}
                             </Button>

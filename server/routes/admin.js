@@ -1291,4 +1291,187 @@ router.get('/export-csv/:department', auth, async (req, res) => {
     }
 });
 
+// ============================================
+// USER MANAGEMENT ROUTES (Super Admin Only)
+// ============================================
+
+const User = require('../models/User');
+const bcrypt = require('bcryptjs');
+const fs = require('fs');
+const path = require('path');
+
+// @route   GET /api/admin/users
+// @desc    Get all users (super admin only)
+// @access  Private (Super Admin)
+router.get('/users', auth, async (req, res) => {
+    try {
+        if (req.user.role !== 'super_admin') {
+            return res.status(403).json({ message: 'Access denied' });
+        }
+
+        const users = await User.find({}, { password: 0 }).sort({ createdAt: -1 });
+        res.json(users);
+    } catch (err) {
+        console.error('Error fetching users:', err.message);
+        res.status(500).json({ error: 'Failed to fetch users' });
+    }
+});
+
+// @route   PUT /api/admin/users/:id/password
+// @desc    Change user password (super admin only)
+// @access  Private (Super Admin)
+router.put('/users/:id/password', auth, async (req, res) => {
+    try {
+        if (req.user.role !== 'super_admin') {
+            return res.status(403).json({ message: 'Access denied' });
+        }
+
+        const { password } = req.body;
+        if (!password || password.length < 6) {
+            return res.status(400).json({ message: 'Password must be at least 6 characters' });
+        }
+
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        const numUpdated = await User.update(
+            { _id: req.params.id },
+            { $set: { password: hashedPassword } }
+        );
+
+        if (numUpdated === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.json({ message: 'Password updated successfully' });
+    } catch (err) {
+        console.error('Error updating password:', err.message);
+        res.status(500).json({ error: 'Failed to update password' });
+    }
+});
+
+// @route   PUT /api/admin/users/:id
+// @desc    Edit user (super admin only)
+// @access  Private (Super Admin)
+router.put('/users/:id', auth, async (req, res) => {
+    try {
+        if (req.user.role !== 'super_admin') {
+            return res.status(403).json({ message: 'Access denied' });
+        }
+
+        const { username, role, department } = req.body;
+        const updateData = {};
+
+        if (username) updateData.username = username;
+        if (role) updateData.role = role;
+        if (department) updateData.department = department;
+
+        const numUpdated = await User.update(
+            { _id: req.params.id },
+            { $set: updateData }
+        );
+
+        if (numUpdated === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.json({ message: 'User updated successfully' });
+    } catch (err) {
+        console.error('Error updating user:', err.message);
+        res.status(500).json({ error: 'Failed to update user' });
+    }
+});
+
+// @route   DELETE /api/admin/users/:id
+// @desc    Delete user (super admin only)
+// @access  Private (Super Admin)
+router.delete('/users/:id', auth, async (req, res) => {
+    try {
+        if (req.user.role !== 'super_admin') {
+            return res.status(403).json({ message: 'Access denied' });
+        }
+
+        // Prevent deleting self
+        if (req.params.id === req.user.id) {
+            return res.status(400).json({ message: 'Cannot delete your own account' });
+        }
+
+        const numRemoved = await User.remove({ _id: req.params.id }, {});
+
+        if (numRemoved === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.json({ message: 'User deleted successfully' });
+    } catch (err) {
+        console.error('Error deleting user:', err.message);
+        res.status(500).json({ error: 'Failed to delete user' });
+    }
+});
+
+// ============================================
+// FEEDBACK LOGIN MANAGEMENT ROUTES (Super Admin Only)
+// ============================================
+
+// @route   GET /api/admin/feedback-logins
+// @desc    Get all feedback login credentials (super admin only)
+// @access  Private (Super Admin)
+router.get('/feedback-logins', auth, async (req, res) => {
+    try {
+        if (req.user.role !== 'super_admin') {
+            return res.status(403).json({ message: 'Access denied' });
+        }
+
+        const configPath = path.join(__dirname, '../../config/feedback_login.json');
+        const logins = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+
+        // Return logins without passwords for security
+        const loginsList = Object.entries(logins).map(([id, data]) => ({
+            id,
+            username: data.username,
+            name: data.name,
+            isAdmin: data.isAdmin || false
+        }));
+
+        res.json(loginsList);
+    } catch (err) {
+        console.error('Error fetching feedback logins:', err.message);
+        res.status(500).json({ error: 'Failed to fetch feedback logins' });
+    }
+});
+
+// @route   PUT /api/admin/feedback-logins/:id/password
+// @desc    Change feedback login password (super admin only)
+// @access  Private (Super Admin)
+router.put('/feedback-logins/:id/password', auth, async (req, res) => {
+    try {
+        if (req.user.role !== 'super_admin') {
+            return res.status(403).json({ message: 'Access denied' });
+        }
+
+        const { password } = req.body;
+        if (!password || password.length < 6) {
+            return res.status(400).json({ message: 'Password must be at least 6 characters' });
+        }
+
+        const configPath = path.join(__dirname, '../../config/feedback_login.json');
+        const logins = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+
+        if (!logins[req.params.id]) {
+            return res.status(404).json({ message: 'Login not found' });
+        }
+
+        // Update password
+        logins[req.params.id].password = password;
+
+        // Write back to file
+        fs.writeFileSync(configPath, JSON.stringify(logins, null, 2));
+
+        res.json({ message: 'Password updated successfully' });
+    } catch (err) {
+        console.error('Error updating feedback login password:', err.message);
+        res.status(500).json({ error: 'Failed to update password' });
+    }
+});
+
 module.exports = router;

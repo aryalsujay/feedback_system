@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import { API_BASE_URL } from '../config';
 
-const useQuestions = () => {
+const useQuestions = (language = 'en') => {
     const [questions, setQuestions] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        fetch(`${API_BASE_URL}/api/config/questions`)
+        setLoading(true);
+        fetch(`${API_BASE_URL}/api/config/questions?lang=${language}`)
             .then(res => res.json())
             .then(data => {
                 setQuestions(data);
@@ -18,7 +19,7 @@ const useQuestions = () => {
                 setError(err);
                 setLoading(false);
             });
-    }, []);
+    }, [language]);
 
     return { questions, loading, error };
 };

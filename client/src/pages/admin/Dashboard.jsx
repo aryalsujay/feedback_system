@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { Search, Filter, Calendar, AlertTriangle, XCircle } from 'lucide-react';
 import Pagination from '../../components/Pagination';
+import { getDepartmentName } from '../../utils/departmentNames';
 
 import { API_BASE_URL } from '../../config';
 
@@ -14,12 +15,55 @@ const Dashboard = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(20); // 20 items per page
 
+    // Date filter states
+    const [dateFilter, setDateFilter] = useState('all');
+    const [customStartDate, setCustomStartDate] = useState('');
+    const [customEndDate, setCustomEndDate] = useState('');
+
     const departments = ['global_pagoda', 'food_court', 'souvenir_shop', 'dhamma_alaya', 'dpvc', 'global'];
 
     useEffect(() => {
         fetchFeedbacks();
-        setCurrentPage(1); // Reset to page 1 when department changes
-    }, [selectedDept]);
+        setCurrentPage(1); // Reset to page 1 when department or filter changes
+    }, [selectedDept, dateFilter, customStartDate, customEndDate]);
+
+    const getDateRange = () => {
+        const now = new Date();
+        let startDate, endDate;
+
+        switch (dateFilter) {
+            case 'today':
+                startDate = new Date(now.setHours(0, 0, 0, 0));
+                endDate = new Date(now.setHours(23, 59, 59, 999));
+                break;
+            case 'week':
+                const weekStart = new Date(now);
+                weekStart.setDate(now.getDate() - now.getDay()); // Start of week (Sunday)
+                weekStart.setHours(0, 0, 0, 0);
+                startDate = weekStart;
+                endDate = new Date();
+                break;
+            case 'month':
+                startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+                endDate = new Date();
+                break;
+            case 'year':
+                startDate = new Date(now.getFullYear(), 0, 1);
+                endDate = new Date();
+                break;
+            case 'custom':
+                if (customStartDate && customEndDate) {
+                    startDate = new Date(customStartDate);
+                    endDate = new Date(customEndDate);
+                    endDate.setHours(23, 59, 59, 999);
+                }
+                break;
+            default:
+                return null;
+        }
+
+        return { startDate, endDate };
+    };
 
     const fetchFeedbacks = async () => {
         try {
@@ -37,7 +81,17 @@ const Dashboard = () => {
 
             if (!response.ok) throw new Error('Failed to fetch');
 
-            const data = await response.json();
+            let data = await response.json();
+
+            // Apply date filter
+            const dateRange = getDateRange();
+            if (dateRange && dateRange.startDate && dateRange.endDate) {
+                data = data.filter(feedback => {
+                    const feedbackDate = new Date(feedback.createdAt);
+                    return feedbackDate >= dateRange.startDate && feedbackDate <= dateRange.endDate;
+                });
+            }
+
             setFeedbacks(data);
         } catch (error) {
             console.error(error);
@@ -60,34 +114,133 @@ const Dashboard = () => {
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
-                    <h2 className="text-2xl font-bold text-gray-800">Feedback Submissions</h2>
-                    <p className="text-gray-500 text-sm mt-1">
-                        Manage and view incoming feedback
-                        {feedbacks.length > 0 && (
-                            <span className="ml-2 text-blue-600 font-medium">
-                                ({feedbacks.length} total)
-                            </span>
-                        )}
-                    </p>
+            <div className="flex flex-col gap-4">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <h2 className="text-2xl font-bold text-gray-800">Feedback Submissions</h2>
+                        <p className="text-gray-500 text-sm mt-1">
+                            Manage and view incoming feedback
+                            {feedbacks.length > 0 && (
+                                <span className="ml-2 text-blue-600 font-medium">
+                                    ({feedbacks.length} total)
+                                </span>
+                            )}
+                        </p>
+                    </div>
+
+                    {(user.role === 'super_admin' || (user.role === 'admin' && user.department === 'global')) && (
+                        <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-gray-200 shadow-sm">
+                            <Filter size={16} className="text-gray-500" />
+                            <select
+                                value={selectedDept}
+                                onChange={(e) => setSelectedDept(e.target.value)}
+                                className="text-sm font-medium text-gray-700 bg-transparent outline-none cursor-pointer"
+                            >
+                                <option value="global">All Departments</option>
+                                {departments.filter(d => d !== 'global').map(d => (
+                                    <option key={d} value={d}>{getDepartmentName(d)}</option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
                 </div>
 
-                {(user.role === 'super_admin' || (user.role === 'admin' && user.department === 'global')) && (
-                    <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-gray-200 shadow-sm">
-                        <Filter size={16} className="text-gray-500" />
-                        <select
-                            value={selectedDept}
-                            onChange={(e) => setSelectedDept(e.target.value)}
-                            className="text-sm font-medium text-gray-700 bg-transparent outline-none cursor-pointer"
-                        >
-                            <option value="global">All Departments</option>
-                            {departments.filter(d => d !== 'global').map(d => (
-                                <option key={d} value={d} className="capitalize">{d.replace('_', ' ')}</option>
-                            ))}
-                        </select>
+                {/* Date Filter */}
+                <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
+                    <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+                        <div className="flex items-center gap-2">
+                            <Calendar size={16} className="text-gray-500" />
+                            <span className="text-sm font-medium text-gray-700">Filter by Date:</span>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-2">
+                            <button
+                                onClick={() => setDateFilter('all')}
+                                className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+                                    dateFilter === 'all'
+                                        ? 'bg-blue-600 text-white'
+                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                }`}
+                            >
+                                All Time
+                            </button>
+                            <button
+                                onClick={() => setDateFilter('today')}
+                                className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+                                    dateFilter === 'today'
+                                        ? 'bg-blue-600 text-white'
+                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                }`}
+                            >
+                                Today
+                            </button>
+                            <button
+                                onClick={() => setDateFilter('week')}
+                                className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+                                    dateFilter === 'week'
+                                        ? 'bg-blue-600 text-white'
+                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                }`}
+                            >
+                                This Week
+                            </button>
+                            <button
+                                onClick={() => setDateFilter('month')}
+                                className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+                                    dateFilter === 'month'
+                                        ? 'bg-blue-600 text-white'
+                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                }`}
+                            >
+                                This Month
+                            </button>
+                            <button
+                                onClick={() => setDateFilter('year')}
+                                className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+                                    dateFilter === 'year'
+                                        ? 'bg-blue-600 text-white'
+                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                }`}
+                            >
+                                This Year
+                            </button>
+                            <button
+                                onClick={() => setDateFilter('custom')}
+                                className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+                                    dateFilter === 'custom'
+                                        ? 'bg-blue-600 text-white'
+                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                }`}
+                            >
+                                Custom Range
+                            </button>
+                        </div>
                     </div>
-                )}
+
+                    {/* Custom Date Range Inputs */}
+                    {dateFilter === 'custom' && (
+                        <div className="mt-4 flex flex-col sm:flex-row items-start sm:items-center gap-3 pt-3 border-t border-gray-200">
+                            <div className="flex items-center gap-2">
+                                <label className="text-sm text-gray-600">From:</label>
+                                <input
+                                    type="date"
+                                    value={customStartDate}
+                                    onChange={(e) => setCustomStartDate(e.target.value)}
+                                    className="px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                />
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <label className="text-sm text-gray-600">To:</label>
+                                <input
+                                    type="date"
+                                    value={customEndDate}
+                                    onChange={(e) => setCustomEndDate(e.target.value)}
+                                    className="px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                />
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
 
             {loading ? (

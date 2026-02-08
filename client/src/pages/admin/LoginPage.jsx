@@ -15,7 +15,7 @@ const LoginPage = () => {
         setError('');
         try {
             await login(username, password);
-            navigate('/admin/dashboard');
+            navigate('/admin/analytics');
         } catch (err) {
             setError('Invalid credentials');
         }

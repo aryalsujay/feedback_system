@@ -3,7 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import {
     Clock, Save, RefreshCw, CheckCircle, AlertCircle, Send, Database, Mail,
     Settings as SettingsIcon, Download, Upload, Trash2, Play, Activity,
-    Mail as MailIcon, Users, HardDrive, Cpu, Server
+    Mail as MailIcon, Users, HardDrive, Cpu, Server, Edit, Key, UserPlus
 } from 'lucide-react';
 import { API_BASE_URL } from '../../config';
 
@@ -44,11 +44,22 @@ const SettingsEnhanced = () => {
     const [sampleDataDepts, setSampleDataDepts] = useState([]);
     const [sampleDataLoading, setSampleDataLoading] = useState(false);
 
+    // User Management State
+    const [users, setUsers] = useState([]);
+    const [usersLoading, setUsersLoading] = useState(false);
+    const [editingUser, setEditingUser] = useState(null);
+    const [passwordChange, setPasswordChange] = useState({ userId: null, newPassword: '' });
+
+    // Feedback Login Management State
+    const [feedbackLogins, setFeedbackLogins] = useState([]);
+    const [feedbackLoginsLoading, setFeedbackLoginsLoading] = useState(false);
+    const [feedbackPasswordChange, setFeedbackPasswordChange] = useState({ loginId: null, newPassword: '' });
+
     const allDepartments = [
-        { value: 'global_pagoda', label: 'Global Pagoda' },
+        { value: 'global_pagoda', label: 'GVP - Public Relations' },
         { value: 'food_court', label: 'Food Court' },
         { value: 'souvenir_shop', label: 'Souvenir Shop' },
-        { value: 'dhamma_alaya', label: 'Dhamma Alaya' },
+        { value: 'dhamma_alaya', label: 'Dhammalaya' },
         { value: 'dpvc', label: 'DPVC' }
     ];
 
@@ -69,6 +80,8 @@ const SettingsEnhanced = () => {
                 fetchEmailConfig();
                 fetchBackups();
                 fetchSystemStats();
+                fetchUsers();
+                fetchFeedbackLogins();
             }
         }
     }, [token, user.role]);
@@ -422,9 +435,137 @@ const SettingsEnhanced = () => {
         return `${days}d ${hours}h ${minutes}m`;
     };
 
+    // User Management Functions
+    const fetchUsers = async () => {
+        try {
+            setUsersLoading(true);
+            const response = await fetch(`${API_BASE_URL}/api/admin/users`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setUsers(data);
+            }
+        } catch (error) {
+            console.error('Error fetching users:', error);
+            setMessage({ type: 'error', text: 'Failed to fetch users' });
+        } finally {
+            setUsersLoading(false);
+        }
+    };
+
+    const handleChangePassword = async (userId) => {
+        if (!passwordChange.newPassword || passwordChange.newPassword.length < 6) {
+            setMessage({ type: 'error', text: 'Password must be at least 6 characters' });
+            return;
+        }
+
+        try {
+            setLoading(true);
+            const response = await fetch(`${API_BASE_URL}/api/admin/users/${userId}/password`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ password: passwordChange.newPassword })
+            });
+
+            if (response.ok) {
+                setMessage({ type: 'success', text: 'Password updated successfully' });
+                setPasswordChange({ userId: null, newPassword: '' });
+            } else {
+                const data = await response.json();
+                throw new Error(data.message || 'Failed to update password');
+            }
+        } catch (error) {
+            setMessage({ type: 'error', text: error.message });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleDeleteUser = async (userId, username) => {
+        if (!window.confirm(`Are you sure you want to delete user "${username}"?`)) {
+            return;
+        }
+
+        try {
+            setLoading(true);
+            const response = await fetch(`${API_BASE_URL}/api/admin/users/${userId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (response.ok) {
+                setMessage({ type: 'success', text: 'User deleted successfully' });
+                fetchUsers();
+            } else {
+                const data = await response.json();
+                throw new Error(data.message || 'Failed to delete user');
+            }
+        } catch (error) {
+            setMessage({ type: 'error', text: error.message });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Feedback Login Management Functions
+    const fetchFeedbackLogins = async () => {
+        try {
+            setFeedbackLoginsLoading(true);
+            const response = await fetch(`${API_BASE_URL}/api/admin/feedback-logins`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setFeedbackLogins(data);
+            }
+        } catch (error) {
+            console.error('Error fetching feedback logins:', error);
+            setMessage({ type: 'error', text: 'Failed to fetch feedback logins' });
+        } finally {
+            setFeedbackLoginsLoading(false);
+        }
+    };
+
+    const handleChangeFeedbackPassword = async (loginId) => {
+        if (!feedbackPasswordChange.newPassword || feedbackPasswordChange.newPassword.length < 6) {
+            setMessage({ type: 'error', text: 'Password must be at least 6 characters' });
+            return;
+        }
+
+        try {
+            setLoading(true);
+            const response = await fetch(`${API_BASE_URL}/api/admin/feedback-logins/${loginId}/password`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ password: feedbackPasswordChange.newPassword })
+            });
+
+            if (response.ok) {
+                setMessage({ type: 'success', text: 'Feedback login password updated successfully' });
+                setFeedbackPasswordChange({ loginId: null, newPassword: '' });
+            } else {
+                const data = await response.json();
+                throw new Error(data.message || 'Failed to update password');
+            }
+        } catch (error) {
+            setMessage({ type: 'error', text: error.message });
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const tabs = [
         { id: 'schedule', label: 'Report Schedule', icon: Clock },
         { id: 'emails', label: 'Email Config', icon: MailIcon },
+        { id: 'users', label: 'Admin Panel Users', icon: Users },
+        { id: 'feedback-logins', label: 'Feedback Form Logins', icon: Key },
         { id: 'backup', label: 'Backup & Restore', icon: Database },
         { id: 'deploy', label: 'Deploy', icon: Play },
         { id: 'custom-reports', label: 'Custom Reports', icon: Send },
@@ -607,6 +748,216 @@ const SettingsEnhanced = () => {
                                 </div>
                             </div>
                         ))}
+                    </div>
+                </div>
+            )}
+
+            {/* User Management Tab */}
+            {activeTab === 'users' && user.role === 'super_admin' && (
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div className="flex items-center justify-between mb-6">
+                        <h2 className="text-xl font-semibold flex items-center gap-2">
+                            <Users className="text-blue-600" size={24} />
+                            User Management
+                        </h2>
+                    </div>
+
+                    {usersLoading ? (
+                        <div className="flex items-center justify-center py-12">
+                            <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                        </div>
+                    ) : (
+                        <div className="space-y-4">
+                            {users.length === 0 ? (
+                                <p className="text-gray-500 text-center py-8">No users found</p>
+                            ) : (
+                                users.map((usr) => (
+                                    <div key={usr._id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                                        <div className="flex items-start justify-between">
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-3 mb-2">
+                                                    <h3 className="font-semibold text-lg text-gray-900">{usr.username}</h3>
+                                                    <span className={`px-2 py-1 text-xs rounded-full ${
+                                                        usr.role === 'super_admin'
+                                                            ? 'bg-purple-100 text-purple-700'
+                                                            : 'bg-blue-100 text-blue-700'
+                                                    }`}>
+                                                        {usr.role === 'super_admin' ? 'Super Admin' : 'Admin'}
+                                                    </span>
+                                                    <span className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-700">
+                                                        {usr.department}
+                                                    </span>
+                                                </div>
+                                                <p className="text-sm text-gray-500">
+                                                    Created: {new Date(usr.createdAt).toLocaleDateString()}
+                                                </p>
+                                            </div>
+
+                                            <div className="flex items-center gap-2">
+                                                {/* Change Password */}
+                                                <button
+                                                    onClick={() => setPasswordChange({ userId: usr._id, newPassword: '' })}
+                                                    className="flex items-center gap-2 px-3 py-2 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition-colors"
+                                                    title="Change Password"
+                                                >
+                                                    <Key size={16} />
+                                                    <span className="text-sm">Change Password</span>
+                                                </button>
+
+                                                {/* Delete User (Cannot delete self) */}
+                                                {usr._id !== user.id && (
+                                                    <button
+                                                        onClick={() => handleDeleteUser(usr._id, usr.username)}
+                                                        className="flex items-center gap-2 px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+                                                        title="Delete User"
+                                                        disabled={loading}
+                                                    >
+                                                        <Trash2 size={16} />
+                                                        <span className="text-sm">Delete</span>
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Password Change Form */}
+                                        {passwordChange.userId === usr._id && (
+                                            <div className="mt-4 pt-4 border-t border-gray-200">
+                                                <div className="flex items-end gap-3">
+                                                    <div className="flex-1">
+                                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                            New Password (min 6 characters)
+                                                        </label>
+                                                        <input
+                                                            type="password"
+                                                            value={passwordChange.newPassword}
+                                                            onChange={(e) => setPasswordChange({ ...passwordChange, newPassword: e.target.value })}
+                                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                            placeholder="Enter new password"
+                                                        />
+                                                    </div>
+                                                    <button
+                                                        onClick={() => handleChangePassword(usr._id)}
+                                                        disabled={loading || !passwordChange.newPassword}
+                                                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                                    >
+                                                        <Save size={18} />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setPasswordChange({ userId: null, newPassword: '' })}
+                                                        className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                                                    >
+                                                        Cancel
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* Feedback Login Management Tab */}
+            {activeTab === 'feedback-logins' && user.role === 'super_admin' && (
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div className="flex items-center justify-between mb-6">
+                        <h2 className="text-xl font-semibold flex items-center gap-2">
+                            <Key className="text-green-600" size={24} />
+                            Feedback Form Login Management
+                        </h2>
+                    </div>
+
+                    <p className="text-sm text-gray-600 mb-6">
+                        Manage passwords for department feedback form logins (stored in config/feedback_login.json)
+                    </p>
+
+                    {feedbackLoginsLoading ? (
+                        <div className="flex items-center justify-center py-12">
+                            <div className="w-8 h-8 border-4 border-green-600 border-t-transparent rounded-full animate-spin"></div>
+                        </div>
+                    ) : (
+                        <div className="space-y-4">
+                            {feedbackLogins.length === 0 ? (
+                                <p className="text-gray-500 text-center py-8">No feedback logins found</p>
+                            ) : (
+                                feedbackLogins.map((login) => (
+                                    <div key={login.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                                        <div className="flex items-start justify-between">
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-3 mb-2">
+                                                    <h3 className="font-semibold text-lg text-gray-900">{login.username}</h3>
+                                                    <span className={`px-2 py-1 text-xs rounded-full ${
+                                                        login.isAdmin
+                                                            ? 'bg-green-100 text-green-700'
+                                                            : 'bg-blue-100 text-blue-700'
+                                                    }`}>
+                                                        {login.isAdmin ? 'Feedback Admin' : 'Department'}
+                                                    </span>
+                                                </div>
+                                                <p className="text-sm text-gray-600">{login.name}</p>
+                                                <p className="text-xs text-gray-400 mt-1">ID: {login.id}</p>
+                                            </div>
+
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={() => setFeedbackPasswordChange({ loginId: login.id, newPassword: '' })}
+                                                    className="flex items-center gap-2 px-3 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
+                                                    title="Change Password"
+                                                >
+                                                    <Key size={16} />
+                                                    <span className="text-sm">Change Password</span>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {/* Password Change Form */}
+                                        {feedbackPasswordChange.loginId === login.id && (
+                                            <div className="mt-4 pt-4 border-t border-gray-200">
+                                                <div className="flex items-end gap-3">
+                                                    <div className="flex-1">
+                                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                            New Password (min 6 characters)
+                                                        </label>
+                                                        <input
+                                                            type="text"
+                                                            value={feedbackPasswordChange.newPassword}
+                                                            onChange={(e) => setFeedbackPasswordChange({ ...feedbackPasswordChange, newPassword: e.target.value })}
+                                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                                            placeholder="Enter new password"
+                                                        />
+                                                        <p className="text-xs text-gray-500 mt-1">
+                                                            Note: Passwords are stored in plain text in config/feedback_login.json
+                                                        </p>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => handleChangeFeedbackPassword(login.id)}
+                                                        disabled={loading || !feedbackPasswordChange.newPassword}
+                                                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                                    >
+                                                        <Save size={18} />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setFeedbackPasswordChange({ loginId: null, newPassword: '' })}
+                                                        className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                                                    >
+                                                        Cancel
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    )}
+
+                    <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <p className="text-sm text-yellow-800">
+                            <strong>Important:</strong> These are the login credentials for the department feedback forms (not the admin panel).
+                            Changes here will update the config/feedback_login.json file.
+                        </p>
                     </div>
                 </div>
             )}

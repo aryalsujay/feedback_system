@@ -1,10 +1,10 @@
 {
   "global_pagoda": {
-    "name": "Global Vipassana Pagoda",
+    "name": "GVP - Public Relations",
     "questions": [
       {
         "id": "peaceful",
-        "text": "How peaceful did you find the Pagoda environment?",
+        "text": "How peaceful did you find the environment here?",
         "type": "smiley",
         "labels": {
           "1": "Very Noisy",
@@ -12,30 +12,6 @@
           "3": "Okay",
           "4": "Peaceful",
           "5": "Very Peaceful"
-        }
-      },
-      {
-        "id": "vipassana_understanding",
-        "text": "Has the visit helped you gain a better understanding of Vipassana?",
-        "type": "number_rating",
-        "labels": {
-          "1": "Not at all",
-          "2": "A little",
-          "3": "Somewhat",
-          "4": "High",
-          "5": "Very High"
-        }
-      },
-      {
-        "id": "course_interest",
-        "text": "After this visit, how interested are you in participating in a 10-Day Vipassana Course?",
-        "type": "number_rating",
-        "labels": {
-          "1": "Not interested",
-          "2": "Slightly interested",
-          "3": "Neutral",
-          "4": "Interested",
-          "5": "Very interested"
         }
       },
       {
@@ -72,6 +48,30 @@
           "3": "Average",
           "4": "Good",
           "5": "Excellent"
+        }
+      },
+      {
+        "id": "vipassana_understanding",
+        "text": "Has this visit helped you gain a better understanding of Vipassana?",
+        "type": "number_rating",
+        "labels": {
+          "1": "Not at all",
+          "2": "A little",
+          "3": "Somewhat",
+          "4": "High",
+          "5": "Very High"
+        }
+      },
+      {
+        "id": "course_interest",
+        "text": "After this visit, how interested are you in participating in a 10-Day Vipassana Course?",
+        "type": "number_rating",
+        "labels": {
+          "1": "Not interested",
+          "2": "Slightly interested",
+          "3": "Neutral",
+          "4": "Interested",
+          "5": "Very interested"
         }
       },
       {

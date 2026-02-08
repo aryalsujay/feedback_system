@@ -1,7 +1,9 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { translations } from './translations';
 import Home from './pages/Home';
+import DepartmentLogin from './pages/DepartmentLogin';
 import FeedbackForm from './pages/FeedbackForm';
 import Button from './components/ui/Button';
 import GlassCard from './components/GlassCard';
@@ -17,6 +19,46 @@ import Settings from './pages/admin/SettingsEnhanced';
 
 const SuccessPage = () => {
   const navigate = useNavigate();
+  const [language, setLanguage] = React.useState('en');
+  const t = translations[language];
+
+  // Load language from localStorage
+  React.useEffect(() => {
+    const savedLang = localStorage.getItem('feedbackLanguage') || 'en';
+    setLanguage(savedLang);
+  }, []);
+
+  // Check if user is logged in and auto-redirect after 3 seconds
+  React.useEffect(() => {
+    const departmentSession = localStorage.getItem('departmentSession');
+    if (departmentSession) {
+      const session = JSON.parse(departmentSession);
+      const timer = setTimeout(() => {
+        if (session.type === 'admin') {
+          // Admin goes back to all department cards
+          navigate('/admin/home');
+        } else {
+          // Department user goes back to their feedback form
+          navigate(`/feedback/${session.departmentId}`);
+        }
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [navigate]);
+
+  const handleReturnHome = () => {
+    const departmentSession = localStorage.getItem('departmentSession');
+    if (departmentSession) {
+      const session = JSON.parse(departmentSession);
+      if (session.type === 'admin') {
+        navigate('/admin/home');
+      } else {
+        navigate(`/feedback/${session.departmentId}`);
+      }
+    } else {
+      navigate('/');
+    }
+  };
 
   // Generate floating particles
   const particles = Array.from({ length: 20 }, (_, i) => ({
@@ -111,7 +153,7 @@ const SuccessPage = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6 }}
           >
-            Thank You
+            {t.thankYou}
           </motion.h1>
 
           <motion.div
@@ -127,8 +169,8 @@ const SuccessPage = () => {
             animate={{ opacity: 1 }}
             transition={{ delay: 1 }}
           >
-            Your valuable feedback has been received.<br />
-            <span className="text-pagoda-gold font-medium">Thank you for helping us improve.</span>
+            {t.feedbackReceived}<br />
+            <span className="text-pagoda-gold font-medium">{t.thankYouMessage}</span>
           </motion.p>
 
           <motion.div
@@ -140,12 +182,12 @@ const SuccessPage = () => {
             className="z-50 relative"
           >
             <Button
-              onClick={() => navigate('/')}
+              onClick={handleReturnHome}
               variant="outline"
               className="border-2 border-pagoda-saffron text-pagoda-maroon hover:bg-gradient-to-r hover:from-pagoda-saffron hover:to-pagoda-gold hover:text-white transition-all duration-300 shadow-md hover:shadow-lg flex items-center gap-2 px-8 py-3 mt-2 cursor-pointer"
             >
               <HomeIcon size={18} />
-              Return to Home
+              {t.submitAnother}
             </Button>
           </motion.div>
         </GlassCard>
@@ -161,12 +203,13 @@ function App() {
         <div className="min-h-screen">
           <Routes>
             {/* Public Routes */}
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<DepartmentLogin />} />
             <Route path="/feedback/:departmentId" element={<FeedbackForm />} />
             <Route path="/success" element={<SuccessPage />} />
 
             {/* Admin Routes */}
             <Route path="/admin/login" element={<LoginPage />} />
+            <Route path="/admin/home" element={<Home />} />
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<Navigate to="/admin/analytics" replace />} />
               <Route path="dashboard" element={<Dashboard />} />
