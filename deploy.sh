@@ -94,9 +94,26 @@ cd ..
 echo ""
 
 # Step 4: Restart the systemd service
-print_warning "Waiting for service to auto-restart..."
-echo "  (The systemd service will restart automatically in ~10 seconds)"
-sleep 12
+print_warning "Restarting systemd service..."
+
+# Try to restart with sudo (works if passwordless sudo is configured)
+if sudo -n systemctl restart feedback-system.service 2>/dev/null; then
+    print_status "Service restart initiated (via sudo)"
+    sleep 3
+elif systemctl --user restart feedback-system.service 2>/dev/null; then
+    print_status "Service restart initiated (via user systemctl)"
+    sleep 3
+else
+    print_error "Failed to restart service automatically!"
+    echo ""
+    echo "To enable automatic restart, set up passwordless sudo:"
+    echo "  See SUDO_SETUP.md for instructions"
+    echo ""
+    echo "For now, manually restart with:"
+    echo "  sudo systemctl restart feedback-system.service"
+    echo ""
+    read -p "Press Enter after manually restarting the service..."
+fi
 
 # Check if service started successfully
 if systemctl is-active --quiet feedback-system.service; then
