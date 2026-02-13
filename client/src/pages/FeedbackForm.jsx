@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { API_BASE_URL } from '../config';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import useQuestions from '../hooks/useQuestions';
 import { translations } from '../translations';
 import GlassCard from '../components/GlassCard';
@@ -13,9 +13,23 @@ import Button from '../components/ui/Button';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Send, Loader2, AlertCircle, LogOut, Languages } from 'lucide-react';
 
+// Map URL paths to department IDs
+const PATH_TO_DEPT = {
+    '/pr': 'global_pagoda',
+    '/fc': 'food_court',
+    '/dpvc': 'dpvc',
+    '/dlaya': 'dhamma_alaya',
+    '/ss': 'souvenir_shop'
+};
+
 const FeedbackForm = () => {
-    const { departmentId } = useParams();
+    const { departmentId: paramDeptId } = useParams();
+    const location = useLocation();
     const navigate = useNavigate();
+
+    // Determine department ID from URL path or param
+    const departmentId = PATH_TO_DEPT[location.pathname] || paramDeptId;
+
     const [language, setLanguage] = useState(() => {
         return localStorage.getItem('feedbackLanguage') || 'en';
     });
@@ -34,25 +48,21 @@ const FeedbackForm = () => {
         localStorage.setItem('feedbackLanguage', newLang);
     };
 
-    // Check for department session on mount
+    // Check for admin session on mount (optional - only for admin access)
     useEffect(() => {
         const session = localStorage.getItem('departmentSession');
         if (session) {
             const parsedSession = JSON.parse(session);
-            setDepartmentSession(parsedSession);
-
-            // Verify department user is accessing their own department
-            // Admin can access any department
-            if (parsedSession.type === 'department' && parsedSession.departmentId !== departmentId) {
-                // Redirect department user to their own department
-                navigate(`/feedback/${parsedSession.departmentId}`);
+            // Only set session if it's an admin session
+            if (parsedSession.type === 'admin') {
+                setDepartmentSession(parsedSession);
             }
         }
     }, [departmentId, navigate]);
 
     const handleLogout = () => {
         localStorage.removeItem('departmentSession');
-        navigate('/');
+        navigate('/feedback-admin/login');
     };
 
     const handleAnswer = (qId, value) => {
@@ -94,7 +104,7 @@ const FeedbackForm = () => {
         setSubmitting(true);
         setSubmitError(null);
 
-        const { name, email, contact, location, ...questionAnswers } = answers;
+        const { name, email, contact, location: userLocation, ...questionAnswers } = answers;
 
         try {
             const response = await fetch(`${API_BASE_URL}/api/feedback`, {
@@ -106,11 +116,18 @@ const FeedbackForm = () => {
                     name: name, // If empty/undefined, backend handles it as anonymous
                     email: email,
                     contact: contact,
-                    location: location
+                    location: userLocation
                 }),
             });
 
             if (!response.ok) throw new Error('Failed to submit feedback');
+
+            // Store the return path for public users
+            if (!departmentSession || departmentSession.type !== 'admin') {
+                const currentPath = location?.pathname || window.location.pathname;
+                localStorage.setItem('feedbackReturnPath', currentPath);
+            }
+
             navigate('/success');
         } catch (err) {
             console.error(err);
@@ -134,27 +151,19 @@ const FeedbackForm = () => {
 
                 <div className="w-full max-w-3xl z-10 mx-auto py-10 px-4 md:px-8">
                 <div className="mb-8 flex justify-between items-center">
-                    {departmentSession ? (
-                        departmentSession.type === 'admin' ? (
-                            <Button
-                                variant="ghost"
-                                onClick={() => navigate('/admin/home')}
-                                className="pl-0 gap-2 text-pagoda-stone-500 hover:text-pagoda-gold hover:bg-transparent"
-                            >
-                                <ArrowLeft size={18} /> {t.backToDepartments}
-                            </Button>
-                        ) : (
-                            <div className="flex items-center gap-4">
-                                <span className="text-sm text-pagoda-stone-600">
-                                    {t.welcome}, <span className="font-semibold text-pagoda-maroon">{departmentSession.departmentName}</span>
-                                </span>
-                            </div>
-                        )
+                    {departmentSession && departmentSession.type === 'admin' ? (
+                        <Button
+                            variant="ghost"
+                            onClick={() => navigate('/admin/home')}
+                            className="pl-0 gap-2 text-pagoda-stone-500 hover:text-pagoda-gold hover:bg-transparent"
+                        >
+                            <ArrowLeft size={18} /> {t.backToDepartments}
+                        </Button>
                     ) : (
                         <div></div>
                     )}
 
-                    {departmentSession && (
+                    {departmentSession && departmentSession.type === 'admin' && (
                         <Button
                             variant="ghost"
                             onClick={handleLogout}

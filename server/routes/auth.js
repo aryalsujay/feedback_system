@@ -121,4 +121,56 @@ router.post('/department-login', (req, res) => {
     }
 });
 
+// @route   PUT /api/auth/change-password
+// @desc    Change current user's password
+// @access  Private (requires authentication)
+router.put('/change-password', auth, async (req, res) => {
+    const { currentPassword, newPassword } = req.body;
+
+    // Validation
+    if (!currentPassword || !newPassword) {
+        return res.status(400).json({ message: 'Please provide both current and new password' });
+    }
+
+    if (newPassword.length < 6) {
+        return res.status(400).json({ message: 'New password must be at least 6 characters long' });
+    }
+
+    try {
+        // Find user (NeDB returns plain object)
+        const user = await User.findOne({ _id: req.user.id });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Verify current password
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ message: 'Current password is incorrect' });
+        }
+
+        // Check if new password is different
+        const isSamePassword = await bcrypt.compare(newPassword, user.password);
+        if (isSamePassword) {
+            return res.status(400).json({ message: 'New password must be different from current password' });
+        }
+
+        // Hash new password
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+        // Update password (NeDB update method)
+        await User.update(
+            { _id: req.user.id },
+            { $set: { password: hashedPassword } }
+        );
+
+        console.log('Password changed successfully for user:', user.username);
+        res.json({ message: 'Password changed successfully' });
+    } catch (err) {
+        console.error('Change password error:', err.message);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
 module.exports = router;

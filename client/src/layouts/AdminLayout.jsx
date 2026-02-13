@@ -1,7 +1,7 @@
 import React from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, LogOut, PieChart, Settings, Menu, X } from 'lucide-react';
+import { LayoutDashboard, LogOut, PieChart, Settings, Menu, X, Key } from 'lucide-react';
 
 const AdminLayout = () => {
     const { user, loading, logout } = useAuth();
@@ -35,11 +35,15 @@ const AdminLayout = () => {
         return null;
     }
 
+    // Navigation items - Settings only for super_admin, Change Password for all
     const navItems = [
-        { path: '/admin/analytics', icon: PieChart, label: 'Analytics' },
-        { path: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-        { path: '/admin/settings', icon: Settings, label: 'Settings' },
-    ];
+        { path: '/admin/analytics', icon: PieChart, label: 'Analytics', showFor: 'all' },
+        { path: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard', showFor: 'all' },
+        { path: '/admin/settings', icon: Settings, label: 'Settings', showFor: 'super_admin' },
+        { path: '/admin/change-password', icon: Key, label: 'Change Password', showFor: 'all' },
+    ].filter(item =>
+        item.showFor === 'all' || (item.showFor === 'super_admin' && user?.role === 'super_admin')
+    );
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex">

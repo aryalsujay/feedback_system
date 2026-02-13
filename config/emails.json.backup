@@ -1,18 +1,23 @@
 {
   "global_pagoda": [
-    "pr@globalpagoda.org"
+    "pr@globalpagoda.org",
+    "lokesh@goenkasons.com"
   ],
   "food_court": [
-    "svct@globalpagoda.org"
+    "svct@globalpagoda.org",
+    "lokesh@goenkasons.com"
   ],
   "souvenir_shop": [
-    "svct@globalpagoda.org"
+    "svct@globalpagoda.org",
+    "lokesh@goenkasons.com"
   ],
   "dhamma_alaya": [
-    "info.dhammalaya@globalpagoda.org"
+    "info.dhammalaya@globalpagoda.org",
+    "lokesh@goenkasons.com"
   ],
   "dpvc": [
-    "registration.pattana@vridhamma.org"
+    "registration.pattana@vridhamma.org",
+    "lokesh@goenkasons.com"
   ],
   "admin": [
     "tod@vridhamma.org"

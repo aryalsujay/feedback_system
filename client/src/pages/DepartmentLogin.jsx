@@ -162,14 +162,16 @@ const DepartmentLogin = () => {
                         </Button>
                     </form>
 
-                    <div className="mt-6 pt-6 border-t border-pagoda-stone-200">
+                    {/* Analytics Admin Login - Hidden from public, access via direct URL */}
+                    {/* Uncomment below if you want to show the link */}
+                    {/* <div className="mt-6 pt-6 border-t border-pagoda-stone-200">
                         <button
                             onClick={handleAdminLogin}
                             className="w-full text-pagoda-stone-600 hover:text-pagoda-maroon transition-colors text-sm"
                         >
                             Admin Login →
                         </button>
-                    </div>
+                    </div> */}
                 </GlassCard>
             </motion.div>
 

@@ -16,6 +16,7 @@ import AdminLayout from './layouts/AdminLayout';
 import Dashboard from './pages/admin/Dashboard';
 import Analytics from './pages/admin/Analytics';
 import Settings from './pages/admin/SettingsEnhanced';
+import ChangePassword from './pages/admin/ChangePassword';
 
 const SuccessPage = () => {
   const navigate = useNavigate();
@@ -28,35 +29,44 @@ const SuccessPage = () => {
     setLanguage(savedLang);
   }, []);
 
-  // Check if user is logged in and auto-redirect after 3 seconds
+  // Auto-redirect after 3 seconds
   React.useEffect(() => {
     const departmentSession = localStorage.getItem('departmentSession');
-    if (departmentSession) {
-      const session = JSON.parse(departmentSession);
-      const timer = setTimeout(() => {
+    const returnPath = localStorage.getItem('feedbackReturnPath');
+
+    const timer = setTimeout(() => {
+      if (departmentSession) {
+        const session = JSON.parse(departmentSession);
         if (session.type === 'admin') {
-          // Admin goes back to all department cards
           navigate('/admin/home');
-        } else {
-          // Department user goes back to their feedback form
-          navigate(`/feedback/${session.departmentId}`);
         }
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
+      } else if (returnPath) {
+        // Public user - return to their department page
+        navigate(returnPath);
+      } else {
+        // Fallback to GVP form (safest default)
+        navigate('/pr');
+      }
+    }, 3000);
+
+    return () => clearTimeout(timer);
   }, [navigate]);
 
   const handleReturnHome = () => {
     const departmentSession = localStorage.getItem('departmentSession');
+    const returnPath = localStorage.getItem('feedbackReturnPath');
+
     if (departmentSession) {
       const session = JSON.parse(departmentSession);
       if (session.type === 'admin') {
         navigate('/admin/home');
-      } else {
-        navigate(`/feedback/${session.departmentId}`);
       }
+    } else if (returnPath) {
+      // Public user - return to their department page
+      navigate(returnPath);
     } else {
-      navigate('/');
+      // Fallback to GVP form (safest default)
+      navigate('/pr');
     }
   };
 
@@ -202,22 +212,32 @@ function App() {
       <AuthProvider>
         <div className="min-h-screen">
           <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<DepartmentLogin />} />
+            {/* Public Routes - Direct Department Access (No Login Required) */}
+            <Route path="/pr" element={<FeedbackForm />} />
+            <Route path="/fc" element={<FeedbackForm />} />
+            <Route path="/dpvc" element={<FeedbackForm />} />
+            <Route path="/dlaya" element={<FeedbackForm />} />
+            <Route path="/ss" element={<FeedbackForm />} />
             <Route path="/feedback/:departmentId" element={<FeedbackForm />} />
             <Route path="/success" element={<SuccessPage />} />
 
-            {/* Admin Routes */}
-            <Route path="/admin/login" element={<LoginPage />} />
+            {/* Feedback Admin Login & Routes (admin/admin977) */}
+            <Route path="/feedback-admin/login" element={<DepartmentLogin />} />
             <Route path="/admin/home" element={<Home />} />
+
+            {/* Analytics Admin Routes (admin/admin123) - Hidden from public */}
+            <Route path="/admin/login" element={<LoginPage />} />
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<Navigate to="/admin/analytics" replace />} />
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="analytics" element={<Analytics />} />
               <Route path="settings" element={<Settings />} />
+              <Route path="change-password" element={<ChangePassword />} />
             </Route>
 
-            <Route path="*" element={<Navigate to="/" replace />} />
+            {/* Homepage - Redirect to GVP form by default */}
+            <Route path="/" element={<Navigate to="/pr" replace />} />
+            <Route path="*" element={<Navigate to="/pr" replace />} />
           </Routes>
         </div>
       </AuthProvider>

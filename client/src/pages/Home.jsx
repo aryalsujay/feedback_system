@@ -31,7 +31,7 @@ const Home = () => {
 
     const handleLogout = () => {
         localStorage.removeItem('departmentSession');
-        navigate('/');
+        navigate('/feedback-admin/login');
     };
 
     if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin text-pagoda-gold" size={48} /></div>;

@@ -120,25 +120,37 @@ sudo systemctl start feedback-system.service
 
 ## Access URLs
 
-### Internal Access (from local network)
-- Feedback Forms: `http://172.12.0.28`
-- Admin Panel: `http://172.12.0.28/admin/login`
+### 🌐 Unified Access (Works from ANYWHERE - Internal WiFi or External Mobile Data)
+- **QR Code URL**: `http://feedback.globalpagoda.org:8888`
+- **Admin Panel**: `http://feedback.globalpagoda.org:8888/admin/login`
+- **Feedback Forms**:
+  - Global Pagoda: `http://feedback.globalpagoda.org:8888/feedback/global_pagoda`
+  - Souvenir Shop: `http://feedback.globalpagoda.org:8888/feedback/souvenir_shop`
+  - Dhamma Alaya: `http://feedback.globalpagoda.org:8888/feedback/dhamma_alaya`
+  - Food Court: `http://feedback.globalpagoda.org:8888/feedback/food_court`
+  - DPVC: `http://feedback.globalpagoda.org:8888/feedback/dpvc`
 
-### External Access (from internet)
-- Feedback Forms: `http://feedback.globalpagoda.org:8888`
-- Admin Panel: `http://feedback.globalpagoda.org:8888/admin/login`
+**Note**: This single URL works whether users are connected to:
+- ✅ Internal Pagoda WiFi
+- ✅ External mobile data / internet
 
 ## Architecture
 
 ```
-External Users → Port 8888 (IT managed) → Port 80 (Nginx) → Port 5001 (Backend)
-Internal Users → Port 80 (Nginx) → Port 5001 (Backend)
+External Users (Mobile Data):
+  feedback.globalpagoda.org:8888 → Sophos Firewall (forwards :8888 → :80) → Nginx:80 → Backend:5001
+
+Internal Users (Pagoda WiFi):
+  feedback.globalpagoda.org:8888 → DNS resolves to 172.12.0.28:8888 → Nginx:8888 → Backend:5001
 ```
 
-- Nginx proxies all requests to backend on port 5001
-- Backend serves both API (`/api/*`) and static frontend files
-- Frontend uses relative URLs, so all requests go through nginx
-- Systemd manages the backend server process
+**Key Components:**
+- **Nginx**: Listens on both port 80 (for Sophos forwarding) and port 8888 (for direct internal access)
+- **Backend**: Runs on port 5001, serves both API (`/api/*`) and static frontend files
+- **Frontend**: Uses relative URLs, all requests go through nginx proxy
+- **Systemd**: Manages the backend server process
+- **DNS**: `/etc/hosts` maps `feedback.globalpagoda.org` to `172.12.0.28` for internal resolution
+- **Sophos**: External firewall forwards public :8888 to server :80 (managed by IT)
 
 ## Troubleshooting
 

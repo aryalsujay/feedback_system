@@ -573,6 +573,26 @@ const SettingsEnhanced = () => {
         { id: 'performance', label: 'Performance', icon: Activity }
     ];
 
+    // Restrict access to super admin only
+    if (user?.role !== 'super_admin') {
+        return (
+            <div className="max-w-2xl mx-auto">
+                <div className="bg-red-50 border border-red-200 rounded-xl p-8 text-center">
+                    <div className="flex justify-center mb-4">
+                        <AlertCircle size={64} className="text-red-600" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-red-900 mb-2">Access Denied</h2>
+                    <p className="text-red-800 mb-6">
+                        You do not have permission to access this page. Only Super Admins can access system settings.
+                    </p>
+                    <p className="text-sm text-red-700">
+                        If you need to change your password, please use the "Change Password" tab.
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
     if (loading && !systemStats) {
         return (
             <div className="flex items-center justify-center h-64">
@@ -585,7 +605,7 @@ const SettingsEnhanced = () => {
         <div className="max-w-6xl mx-auto">
             <div className="mb-6">
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">System Settings</h1>
-                <p className="text-gray-600">Configure system settings and manage the feedback system</p>
+                <p className="text-gray-600">Configure system settings and manage the feedback system (Super Admin Only)</p>
             </div>
 
             {message && (

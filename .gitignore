@@ -9,3 +9,6 @@ coverage
 *.log
 server/data/*.db
 server/reports/*.pdf
+
+# Deployment script with credentials - DO NOT COMMIT
+deploy.sh
