@@ -394,13 +394,13 @@ const SettingsEnhanced = () => {
     };
 
     const handleClearFeedback = async () => {
-        if (!confirm('Are you sure you want to delete ALL feedback data? This action cannot be undone!')) {
+        if (!confirm('Are you sure you want to delete all SAMPLE feedback data? Real feedback will be preserved. This action cannot be undone!')) {
             return;
         }
 
         try {
             setLoading(true);
-            setMessage({ type: 'info', text: 'Clearing feedback data...' });
+            setMessage({ type: 'info', text: 'Clearing sample feedback data...' });
             const response = await fetch(`${API_BASE_URL}/api/admin/clear-all-feedback`, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` }
@@ -1277,29 +1277,29 @@ const SettingsEnhanced = () => {
                         </div>
                     </div>
 
-                    {/* Clear All Feedback */}
-                    <div className="bg-white rounded-xl shadow-sm border border-red-200 p-6">
-                        <h2 className="text-xl font-semibold mb-4 text-red-600">Clear All Feedback Data</h2>
-                        <div className="p-4 bg-red-50 border border-red-200 rounded-lg mb-4">
-                            <p className="text-sm text-red-800">
-                                <strong>⚠️ Warning:</strong> This action will permanently delete ALL feedback data from the database. This cannot be undone!
+                    {/* Clear Sample Feedback */}
+                    <div className="bg-white rounded-xl shadow-sm border border-yellow-200 p-6">
+                        <h2 className="text-xl font-semibold mb-4 text-orange-600">Clear Sample Feedback Data</h2>
+                        <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg mb-4">
+                            <p className="text-sm text-yellow-800">
+                                <strong>⚠️ Note:</strong> This action will delete only SAMPLE feedback data (created for testing). Real feedback data will be preserved. This cannot be undone!
                             </p>
                         </div>
 
                         <button
                             onClick={handleClearFeedback}
                             disabled={loading}
-                            className="flex items-center gap-2 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:bg-gray-400 font-medium"
+                            className="flex items-center gap-2 px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:bg-gray-400 font-medium"
                         >
                             {loading ? (
                                 <>
                                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                    Clearing...
+                                    Clearing Sample Data...
                                 </>
                             ) : (
                                 <>
                                     <Trash2 size={18} />
-                                    Clear All Feedback
+                                    Clear Sample Feedback
                                 </>
                             )}
                         </button>

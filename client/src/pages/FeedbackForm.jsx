@@ -327,7 +327,7 @@ const FeedbackForm = () => {
                     )}
 
                     <motion.div
-                        className="pt-8 pb-12 flex justify-center"
+                        className="pt-8 pb-6 flex justify-center"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.5 }}
@@ -351,6 +351,43 @@ const FeedbackForm = () => {
                             </Button>
                         </motion.div>
                     </motion.div>
+
+                    {/* Contact Information - Only for PR Department */}
+                    {departmentId === 'global_pagoda' && (
+                        <motion.div
+                            className="pb-12 flex justify-center"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.7 }}
+                        >
+                            <div className="max-w-xl w-full bg-gradient-to-br from-pagoda-lotus/20 via-white to-pagoda-peace/20 backdrop-blur-sm border-2 border-pagoda-gold/40 rounded-xl p-6 shadow-lg">
+                                <div className="text-center">
+                                    {language === 'hi' ? (
+                                        <p className="text-sm md:text-base text-pagoda-stone-700 font-medium">
+                                            किसी भी अन्य मामले के लिए कृपया{' '}
+                                            <a
+                                                href="mailto:pr@globalpagoda.org"
+                                                className="text-pagoda-gold hover:text-pagoda-saffron underline decoration-2 underline-offset-2 transition-colors duration-200 font-semibold"
+                                            >
+                                                pr@globalpagoda.org
+                                            </a>
+                                            {' '}पर संपर्क करें
+                                        </p>
+                                    ) : (
+                                        <p className="text-sm md:text-base text-pagoda-stone-700 font-medium">
+                                            For any other matter please contact{' '}
+                                            <a
+                                                href="mailto:pr@globalpagoda.org"
+                                                className="text-pagoda-gold hover:text-pagoda-saffron underline decoration-2 underline-offset-2 transition-colors duration-200 font-semibold"
+                                            >
+                                                pr@globalpagoda.org
+                                            </a>
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
                 </form>
                 </div>
             </div>

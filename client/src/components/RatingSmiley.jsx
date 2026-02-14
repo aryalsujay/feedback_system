@@ -81,9 +81,9 @@ const RatingSmiley = ({ value, onChange, labels = {} }) => {
                                 )}
                             </motion.div>
                         </motion.button>
-                        {/* Responsive label with word wrap */}
+                        {/* Responsive label with word wrap - increased mobile font size for better readability */}
                         <motion.span
-                            className={`text-[8px] sm:text-[9px] md:text-base text-center font-bold leading-tight min-h-[28px] sm:min-h-[32px] md:h-10 flex items-start justify-center transition-all duration-300 ${value === opt.val ? 'scale-105 md:scale-110 text-shadow' : 'text-gray-500'}`}
+                            className={`text-[10px] sm:text-xs md:text-base text-center font-bold leading-tight min-h-[28px] sm:min-h-[32px] md:h-10 flex items-start justify-center transition-all duration-300 ${value === opt.val ? 'scale-105 md:scale-110 text-shadow' : 'text-gray-500'}`}
                             style={{
                                 color: value === opt.val ? opt.color : undefined,
                                 textShadow: value === opt.val ? `0 2px 4px ${opt.color}40` : 'none',

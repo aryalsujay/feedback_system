@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { Search, Filter, Calendar, AlertTriangle, XCircle } from 'lucide-react';
+import { Search, Filter, Calendar, AlertTriangle, XCircle, Trash2, Edit2 } from 'lucide-react';
 import Pagination from '../../components/Pagination';
 import { getDepartmentName } from '../../utils/departmentNames';
 
@@ -20,12 +20,15 @@ const Dashboard = () => {
     const [customStartDate, setCustomStartDate] = useState('');
     const [customEndDate, setCustomEndDate] = useState('');
 
+    // Data type filter (sample vs real)
+    const [dataTypeFilter, setDataTypeFilter] = useState('all'); // 'all', 'real', 'sample'
+
     const departments = ['global_pagoda', 'food_court', 'souvenir_shop', 'dhamma_alaya', 'dpvc', 'global'];
 
     useEffect(() => {
         fetchFeedbacks();
         setCurrentPage(1); // Reset to page 1 when department or filter changes
-    }, [selectedDept, dateFilter, customStartDate, customEndDate]);
+    }, [selectedDept, dateFilter, customStartDate, customEndDate, dataTypeFilter]);
 
     const getDateRange = () => {
         const now = new Date();
@@ -92,6 +95,13 @@ const Dashboard = () => {
                 });
             }
 
+            // Apply data type filter (sample vs real)
+            if (dataTypeFilter === 'sample') {
+                data = data.filter(feedback => feedback.isSample === true);
+            } else if (dataTypeFilter === 'real') {
+                data = data.filter(feedback => !feedback.isSample);
+            }
+
             setFeedbacks(data);
         } catch (error) {
             console.error(error);
@@ -112,6 +122,40 @@ const Dashboard = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
+    // Calculate sample vs real counts for super admin
+    const sampleCount = feedbacks.filter(f => f.isSample === true).length;
+    const realCount = feedbacks.filter(f => !f.isSample).length;
+
+    // Delete sample feedback entry
+    const handleDeleteFeedback = async (feedbackId, e) => {
+        e.stopPropagation(); // Prevent expanding/collapsing when clicking delete
+
+        if (!confirm('Are you sure you want to delete this sample feedback entry? This action cannot be undone!')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/admin/feedback/${feedbackId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to delete feedback');
+            }
+
+            // Refresh feedbacks after deletion
+            fetchFeedbacks();
+            alert('Sample feedback deleted successfully');
+        } catch (error) {
+            console.error('Error deleting feedback:', error);
+            alert(error.message || 'Failed to delete feedback');
+        }
+    };
+
     return (
         <div className="space-y-6">
             <div className="flex flex-col gap-4">
@@ -121,8 +165,16 @@ const Dashboard = () => {
                         <p className="text-gray-500 text-sm mt-1">
                             Manage and view incoming feedback
                             {feedbacks.length > 0 && (
-                                <span className="ml-2 text-blue-600 font-medium">
-                                    ({feedbacks.length} total)
+                                <span className="ml-2 font-medium">
+                                    <span className="text-blue-600">({feedbacks.length} total)</span>
+                                    {user.role === 'super_admin' && (
+                                        <>
+                                            <span className="text-gray-400 mx-1">|</span>
+                                            <span className="text-green-600">{realCount} real</span>
+                                            <span className="text-gray-400 mx-1">•</span>
+                                            <span className="text-orange-600">{sampleCount} sample</span>
+                                        </>
+                                    )}
                                 </span>
                             )}
                         </p>
@@ -241,6 +293,51 @@ const Dashboard = () => {
                         </div>
                     )}
                 </div>
+
+                {/* Data Type Filter (Sample vs Real) - Super Admin Only */}
+                {user.role === 'super_admin' && (
+                    <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
+                        <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+                            <div className="flex items-center gap-2">
+                                <Filter size={16} className="text-gray-500" />
+                                <span className="text-sm font-medium text-gray-700">Filter by Type:</span>
+                            </div>
+
+                            <div className="flex flex-wrap items-center gap-2">
+                                <button
+                                    onClick={() => setDataTypeFilter('all')}
+                                    className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+                                        dataTypeFilter === 'all'
+                                            ? 'bg-purple-600 text-white'
+                                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                    }`}
+                                >
+                                    All Data
+                                </button>
+                                <button
+                                    onClick={() => setDataTypeFilter('real')}
+                                    className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+                                        dataTypeFilter === 'real'
+                                            ? 'bg-green-600 text-white'
+                                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                    }`}
+                                >
+                                    Real Feedback Only
+                                </button>
+                                <button
+                                    onClick={() => setDataTypeFilter('sample')}
+                                    className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+                                        dataTypeFilter === 'sample'
+                                            ? 'bg-orange-600 text-white'
+                                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                    }`}
+                                >
+                                    Sample Data Only
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
 
             {loading ? (
@@ -289,8 +386,17 @@ const Dashboard = () => {
                                                     <td className="px-6 py-4 text-gray-600 whitespace-nowrap">
                                                         {new Date(item.createdAt).toLocaleDateString()}
                                                     </td>
-                                                    <td className="px-6 py-4 capitalize text-gray-800 font-medium">
-                                                        {item.department.replace('_', ' ')}
+                                                    <td className="px-6 py-4">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="capitalize text-gray-800 font-medium">
+                                                                {item.department.replace('_', ' ')}
+                                                            </span>
+                                                            {item.isSample && (
+                                                                <span className="px-2 py-0.5 text-[10px] font-bold bg-orange-100 text-orange-700 border border-orange-300 rounded uppercase">
+                                                                    Sample
+                                                                </span>
+                                                            )}
+                                                        </div>
                                                     </td>
                                                     <td className="px-6 py-4">
                                                         <div className="flex flex-col items-center justify-center">
@@ -348,7 +454,19 @@ const Dashboard = () => {
                                                                     );
                                                                 })}
                                                                 <div className="col-span-full mt-4 p-4 md:p-5 bg-white rounded-xl border border-gray-100 shadow-sm">
-                                                                    <h4 className="text-[10px] font-bold text-gray-400 uppercase mb-3 tracking-widest">Full Feedback</h4>
+                                                                    <div className="flex items-center justify-between mb-3">
+                                                                        <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Full Feedback</h4>
+                                                                        {user.role === 'super_admin' && item.isSample && (
+                                                                            <button
+                                                                                onClick={(e) => handleDeleteFeedback(item._id, e)}
+                                                                                className="flex items-center gap-1 px-3 py-1.5 text-xs bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 rounded-md transition-colors font-medium"
+                                                                                title="Delete this sample entry"
+                                                                            >
+                                                                                <Trash2 size={12} />
+                                                                                Delete Sample
+                                                                            </button>
+                                                                        )}
+                                                                    </div>
                                                                     <p className="text-gray-800 whitespace-pre-wrap leading-relaxed text-sm md:text-base">"{item.feedback}"</p>
                                                                     <div className="mt-4 pt-4 border-t border-gray-50 flex flex-col sm:flex-row flex-wrap gap-2 text-[10px] text-gray-400 font-medium uppercase tracking-wider">
                                                                         <span>👤 {item.name || 'Anonymous'}</span>
@@ -411,6 +529,14 @@ const Dashboard = () => {
                                                 </div>
                                                 <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500">
                                                     <span className="capitalize font-medium">{item.department.replace('_', ' ')}</span>
+                                                    {item.isSample && (
+                                                        <>
+                                                            <span>•</span>
+                                                            <span className="px-1.5 py-0.5 text-[9px] font-bold bg-orange-100 text-orange-700 border border-orange-300 rounded uppercase">
+                                                                Sample
+                                                            </span>
+                                                        </>
+                                                    )}
                                                     <span>•</span>
                                                     <span>{new Date(item.createdAt).toLocaleDateString()}</span>
                                                 </div>
@@ -465,7 +591,19 @@ const Dashboard = () => {
                                                 </div>
                                             </div>
                                             <div className="bg-white p-4 rounded-lg border border-gray-100">
-                                                <h4 className="text-[10px] font-bold text-gray-400 uppercase mb-2">Full Feedback</h4>
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <h4 className="text-[10px] font-bold text-gray-400 uppercase">Full Feedback</h4>
+                                                    {user.role === 'super_admin' && item.isSample && (
+                                                        <button
+                                                            onClick={(e) => handleDeleteFeedback(item._id, e)}
+                                                            className="flex items-center gap-1 px-2 py-1 text-[10px] bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 rounded transition-colors font-medium"
+                                                            title="Delete this sample entry"
+                                                        >
+                                                            <Trash2 size={10} />
+                                                            Delete
+                                                        </button>
+                                                    )}
+                                                </div>
                                                 <p className="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">"{item.feedback}"</p>
                                                 <div className="mt-4 pt-3 border-t border-gray-100 space-y-1 text-[10px] text-gray-400 uppercase">
                                                     <p>👤 {item.name || 'Anonymous'}</p>

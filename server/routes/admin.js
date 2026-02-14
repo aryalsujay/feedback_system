@@ -430,6 +430,7 @@ router.post('/create-sample-data', auth, async (req, res) => {
                     sentiment: sentiment,
                     name: `Sample User ${i + 1}`,
                     email: `sample${i + 1}@example.com`,
+                    isSample: true, // Mark as sample data for testing
                     createdAt: date,
                     updatedAt: date
                 });
@@ -456,7 +457,7 @@ router.post('/create-sample-data', auth, async (req, res) => {
 // Test report endpoint removed - use custom report with specific recipients instead
 
 // @route   POST /api/admin/clear-all-feedback
-// @desc    Clear all feedback data from database
+// @desc    Clear sample feedback data from database (keeps real feedback)
 // @access  Private (Super Admin only)
 router.post('/clear-all-feedback', auth, async (req, res) => {
     try {
@@ -466,19 +467,120 @@ router.post('/clear-all-feedback', auth, async (req, res) => {
             return res.status(403).json({ msg: 'Access denied. Super admin only.' });
         }
 
-        const numRemoved = await Feedback.remove({}, { multi: true });
+        // Only remove sample data (isSample: true), keep real feedback
+        const numRemoved = await Feedback.remove({ isSample: true }, { multi: true });
 
         res.json({
             success: true,
-            message: `Successfully deleted ${numRemoved} feedback entries.`,
+            message: `Successfully deleted ${numRemoved} sample feedback entries. Real feedback data preserved.`,
             count: numRemoved
         });
     } catch (err) {
-        console.error('Error clearing feedback:', err.message);
+        console.error('Error clearing sample feedback:', err.message);
         res.status(500).json({
             success: false,
-            error: 'Failed to clear feedback data.'
+            error: 'Failed to clear sample feedback data.'
         });
+    }
+});
+
+// @route   DELETE /api/admin/feedback/:id
+// @desc    Delete a single feedback entry (sample data only)
+// @access  Private (Super Admin only)
+router.delete('/feedback/:id', auth, async (req, res) => {
+    try {
+        const { role } = req.user;
+
+        if (role !== 'super_admin') {
+            return res.status(403).json({ msg: 'Access denied. Super admin only.' });
+        }
+
+        const { id } = req.params;
+
+        // First, check if the feedback exists and is sample data
+        const feedback = await Feedback.findOne({ _id: id });
+
+        if (!feedback) {
+            return res.status(404).json({ error: 'Feedback not found' });
+        }
+
+        if (!feedback.isSample) {
+            return res.status(403).json({ error: 'Cannot delete real feedback data. Only sample data can be deleted.' });
+        }
+
+        // Delete the feedback
+        const numRemoved = await Feedback.remove({ _id: id }, {});
+
+        if (numRemoved === 0) {
+            return res.status(404).json({ error: 'Feedback not found' });
+        }
+
+        res.json({
+            success: true,
+            message: 'Sample feedback deleted successfully'
+        });
+    } catch (err) {
+        console.error('Error deleting feedback:', err.message);
+        res.status(500).json({ error: 'Failed to delete feedback' });
+    }
+});
+
+// @route   PUT /api/admin/feedback/:id
+// @desc    Edit a single feedback entry (sample data only)
+// @access  Private (Super Admin only)
+router.put('/feedback/:id', auth, async (req, res) => {
+    try {
+        const { role } = req.user;
+
+        if (role !== 'super_admin') {
+            return res.status(403).json({ msg: 'Access denied. Super admin only.' });
+        }
+
+        const { id } = req.params;
+        const { answers, feedback: feedbackText, category, sentiment, name, email, contact, location } = req.body;
+
+        // First, check if the feedback exists and is sample data
+        const existingFeedback = await Feedback.findOne({ _id: id });
+
+        if (!existingFeedback) {
+            return res.status(404).json({ error: 'Feedback not found' });
+        }
+
+        if (!existingFeedback.isSample) {
+            return res.status(403).json({ error: 'Cannot edit real feedback data. Only sample data can be edited.' });
+        }
+
+        // Update the feedback
+        const updateData = {
+            updatedAt: new Date()
+        };
+
+        if (answers !== undefined) updateData.answers = answers;
+        if (feedbackText !== undefined) updateData.feedback = feedbackText;
+        if (category !== undefined) updateData.category = category;
+        if (sentiment !== undefined) updateData.sentiment = sentiment;
+        if (name !== undefined) updateData.name = name;
+        if (email !== undefined) updateData.email = email;
+        if (contact !== undefined) updateData.contact = contact;
+        if (location !== undefined) updateData.location = location;
+
+        const numUpdated = await Feedback.update({ _id: id }, { $set: updateData }, {});
+
+        if (numUpdated === 0) {
+            return res.status(404).json({ error: 'Feedback not found' });
+        }
+
+        // Fetch and return the updated feedback
+        const updated = await Feedback.findOne({ _id: id });
+
+        res.json({
+            success: true,
+            message: 'Sample feedback updated successfully',
+            feedback: updated
+        });
+    } catch (err) {
+        console.error('Error updating feedback:', err.message);
+        res.status(500).json({ error: 'Failed to update feedback' });
     }
 });
 
@@ -1053,42 +1155,48 @@ router.post('/deploy', auth, async (req, res) => {
 
         const { exec } = require('child_process');
         const path = require('path');
+        const fs = require('fs');
         const deployScript = path.join(__dirname, '../../deploy.sh');
 
         // Check if deploy.sh exists
-        if (!require('fs').existsSync(deployScript)) {
-            return res.status(404).json({ msg: 'Deploy script not found' });
+        if (!fs.existsSync(deployScript)) {
+            return res.status(404).json({ error: 'Deploy script not found at: ' + deployScript });
         }
 
-        // Execute deploy script in background
-        const process = exec(`bash ${deployScript}`, {
-            cwd: path.join(__dirname, '../..')
+        // Check if deploy.sh is executable
+        try {
+            fs.accessSync(deployScript, fs.constants.X_OK);
+        } catch (err) {
+            return res.status(403).json({
+                error: 'Deploy script is not executable. Run: chmod +x deploy.sh'
+            });
+        }
+
+        // Execute deploy script in background with proper error handling
+        const deployProcess = exec(`bash "${deployScript}"`, {
+            cwd: path.join(__dirname, '../..'),
+            maxBuffer: 1024 * 1024 * 10 // 10MB buffer
+        }, (error, stdout, stderr) => {
+            if (error) {
+                console.error(`Deploy script error: ${error.message}`);
+                console.error(`stderr: ${stderr}`);
+            } else {
+                console.log(`Deploy script completed successfully`);
+                console.log(`stdout: ${stdout}`);
+            }
         });
 
-        let output = '';
-        let errorOutput = '';
-
-        process.stdout.on('data', (data) => {
-            output += data;
-            console.log(data);
-        });
-
-        process.stderr.on('data', (data) => {
-            errorOutput += data;
-            console.error(data);
-        });
-
-        process.on('close', (code) => {
-            console.log(`Deploy script exited with code ${code}`);
+        deployProcess.on('error', (err) => {
+            console.error('Failed to start deploy script:', err);
         });
 
         res.json({
             success: true,
-            message: 'Deployment started. The server will restart automatically when complete.'
+            message: 'Deployment started successfully. The server will restart automatically when complete.'
         });
     } catch (err) {
         console.error('Error running deploy script:', err.message);
-        res.status(500).json({ error: 'Failed to run deploy script.' });
+        res.status(500).json({ error: 'Failed to run deploy script: ' + err.message });
     }
 });
 

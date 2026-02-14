@@ -5,7 +5,7 @@ const Feedback = require('../models/Feedback');
 // POST /api/feedback
 router.post('/', async (req, res) => {
     try {
-        const { departmentId, answers, name, email, contact, location } = req.body;
+        const { departmentId, answers, name, email, contact, location, isSample } = req.body;
 
         if (!departmentId || !answers) {
             return res.status(400).json({ error: 'Missing departmentId or answers' });
@@ -57,6 +57,7 @@ router.post('/', async (req, res) => {
             feedback: feedbackText,
             sentiment: sentiment,
             category: derivedCategory,
+            isSample: isSample || false, // Mark deployment test feedback as sample
             createdAt: new Date(),
             updatedAt: new Date()
         });

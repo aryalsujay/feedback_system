@@ -261,7 +261,8 @@ SUBMIT_RESPONSE=$(curl -s -X POST http://localhost:5001/api/feedback \
             "food_quality":"5",
             "suggestion":"Deployment test"
         },
-        "name":"Deploy Test"
+        "name":"Deploy Test",
+        "isSample":true
     }')
 if echo "$SUBMIT_RESPONSE" | grep -q '"message":"Feedback submitted successfully"'; then
     print_status "Test 5/6: Feedback submission works"
